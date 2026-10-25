@@ -437,6 +437,12 @@
     .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .chip { padding: 9px 12px; font-size: 0.9rem; border-radius: 18px; background: var(--bg); color: var(--text); border: 1px solid var(--border); }
     .chip.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .mic.tapreply { background: var(--orange); box-shadow: 0 0 0 4px rgba(255,165,0,0.25); }
+    .msg.bot.quiet { opacity: 0.75; font-style: italic; }
+    .voice-pick { padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .voice-pick label small { display: block; color: var(--text-muted); font-size: 0.8rem; font-weight: 400; }
+    .voice-pick-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+    .voice-pick-row select { flex: 1; min-width: 0; padding: 10px; border-radius: 10px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-size: 0.95rem; }
   </style>
 </head>
 <body>
@@ -640,6 +646,9 @@
       <h2>Settings</h2>
       <label class="toggle-row"><span>Carry leftover to next pay period<small>On: unspent money (or overspending) carries forward and the new budget is added. Off: each envelope resets to its budget.</small></span><input type="checkbox" id="setCarry" /></label>
       <label class="toggle-row"><span>Spoken replies<small>Read answers out loud after each voice or typed command.</small></span><input type="checkbox" id="setVoice" /></label>
+      <label class="toggle-row"><span>Keep listening after replies<small>Hands-free: after answering a voice request, the mic opens again so you can answer back. Say “done” or “thanks” to stop.</small></span><input type="checkbox" id="setKeepListening" /></label>
+      <div class="voice-pick"><label for="setVoiceName">Voice<small>★ = Enhanced/Premium (most natural). Add more in iPhone Settings › Accessibility › Spoken Content › Voices › English.</small></label>
+        <div class="voice-pick-row"><select id="setVoiceName"><option value="">Automatic (best available)</option></select><button type="button" class="btn-secondary btn-small" id="btnTestVoice">Test voice</button></div></div>
       <div class="muted-note" id="settingsInfo" style="margin-top:12px;"></div>
       <button class="btn-secondary btn-small" type="button" id="btnBackupText" style="width:100%;margin-top:12px;">Show backup as text (copy &amp; paste)</button>
       <div class="modal-actions">
@@ -1145,7 +1154,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     // Added fields: envelope.budget, entry.kind/groupId/budgetDelta, settings, currentPeriod, periods.
     let envelopes = [];
     let history = [];
-    let settings = { carryOver: true, voice: true, lastBackup: 0 };
+    let settings = { carryOver: true, voice: true, keepListening: true, voiceURI: '', lastBackup: 0 };
     let currentPeriod = null;   // key like "2026-10-B"
     let periods = {};           // closed-period snapshots by key
     let editingId = null;
@@ -1172,7 +1181,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       const out = {
         envelopes: Array.isArray(data && data.envelopes) ? data.envelopes : [],
         history: Array.isArray(data && data.history) ? data.history : [],
-        settings: Object.assign({ carryOver: true, voice: true, lastBackup: 0 }, (data && data.settings) || {}),
+        settings: Object.assign({ carryOver: true, voice: true, keepListening: true, voiceURI: '', lastBackup: 0 }, (data && data.settings) || {}),
         currentPeriod: (data && data.currentPeriod) || null,
         periods: (data && data.periods) || {}
       };
@@ -1684,11 +1693,44 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     // ========== SPEECH OUTPUT ==========
     let speechUnlocked = false;
     const liveUtterances = [];   // keep references so iOS/Chrome don't garbage-collect utterances mid-speech
+    let speechSeq = 0, speechActive = false;   // speechActive: our reply is being spoken right now
+    const speechDoneWaiters = [];
     function synth() { return ('speechSynthesis' in window) ? window.speechSynthesis : null; }
+    // --- voice choice: prefer natural (Premium/Enhanced) English voices, avoid novelty/compact ones ---
+    const NOVELTY_VOICES = /\b(albert|bad news|bahh|bells|boing|bubbles|cellos|wobble|deranged|fred|good news|hysterical|jester|junior|kathy|organ|superstar|ralph|trinoids|whisper|zarvox|grandma|grandpa|eddy|flo|reed|rocko|sandy|shelley)\b/i;
+    const NATURAL_NAMES = /\b(ava|zoe|evan|nathan|joelle|noelle|samantha|allison|susan|tom|serena|daniel|karen|moira|tessa|kate|oliver|matilda|lee|aaron|nicky|siri|jenny|aria|guy|libby|ryan|sonia|clara|liam)\b/i;
+    function englishVoices() {
+      const s = synth(); if (!s) return [];
+      let vs = []; try { vs = s.getVoices() || []; } catch (e) {}
+      return vs.filter(v => /^en([-_]|$)/i.test(v.lang || ''));
+    }
+    function voiceScore(v) {
+      const name = v.name || '', lang = (v.lang || '').replace('_', '-');
+      let sc = 0;
+      if (/^en-CA/i.test(lang)) sc += 30; else if (/^en-US/i.test(lang)) sc += 28; else if (/^en-GB/i.test(lang)) sc += 22; else if (/^en-(AU|IE|NZ)/i.test(lang)) sc += 15; else sc += 5;
+      if (/premium/i.test(name)) sc += 120;
+      if (/enhanced/i.test(name)) sc += 100;
+      if (/natural|neural|online/i.test(name)) sc += 90;     // Microsoft Edge “Online (Natural)” voices
+      if (/siri/i.test(name)) sc += 80;
+      if (/^google\b/i.test(name)) sc += 40;
+      if (NATURAL_NAMES.test(name)) sc += 25;
+      if (/compact/i.test(name)) sc -= 60;
+      if (NOVELTY_VOICES.test(name)) sc -= 500;
+      if (/eloquence/i.test(v.voiceURI || '')) sc -= 300;
+      if (v.default) sc += 2;
+      return sc;
+    }
+    function bestVoice(list) {
+      list = list || englishVoices();
+      let best = null, bs = -Infinity;
+      list.forEach(v => { const sc = voiceScore(v); if (sc > bs) { bs = sc; best = v; } });
+      return best;
+    }
     function pickVoice() {
       try {
-        const vs = synth().getVoices() || [];
-        return vs.find(v => /en-CA/i.test(v.lang)) || vs.find(v => /en-US/i.test(v.lang) && /samantha|alex|aaron|nicky/i.test(v.name)) || vs.find(v => /^en/i.test(v.lang)) || null;
+        const vs = englishVoices();
+        if (settings.voiceURI) { const chosen = vs.find(v => v.voiceURI === settings.voiceURI); if (chosen) return chosen; }
+        return bestVoice(vs);
       } catch (e) { return null; }
     }
     function unlockSpeech() {
@@ -1696,20 +1738,47 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       if (speechUnlocked || !s) return;
       try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; s.speak(u); speechUnlocked = true; } catch (e) {}
     }
+    // Text as it should sound: no emoji/symbols, money said in words.
+    function spokenText(text) {
+      let t = String(text);
+      t = t.replace(/(-)?\$(\d[\d,]*)(?:\.(\d\d))?/g, (m, neg, d, c) => {
+        const dollars = d.replace(/,/g, ''); const cents = c ? parseInt(c, 10) : 0;
+        let s = (dollars === '1' ? '1 dollar' : dollars + ' dollars');
+        if (cents) s += ' and ' + cents + (cents === 1 ? ' cent' : ' cents');
+        return (neg ? 'minus ' : '') + s;
+      });
+      t = t.replace(/[“”"]/g, '').replace(/[‘’]/g, '\'').replace(/\n+/g, '. ').replace(/\s*[–—]\s*/g, ' to ').replace(/&/g, ' and ').replace(/%/g, ' percent');
+      t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{21FF}\u{2300}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '');
+      t = t.replace(/[*#_~^|<>{}\[\]•·→←↶]/g, ' ');
+      return t.replace(/\s+([.,!?])/g, '$1').replace(/([.!?])\s*\.+/g, '$1').replace(/\s{2,}/g, ' ').trim();
+    }
+    function notifySpeechDone(seq) {
+      if (seq !== speechSeq) return;
+      speechActive = false;
+      speechDoneWaiters.splice(0).forEach(fn => { try { fn(); } catch (e) {} });
+    }
     function speak(text) {
       const s = synth();
       if (!settings.voice || !s || !text) return false;
-      const clean = String(text).replace(/[“”"]/g, '').replace(/\n+/g, '. ').replace(/–/g, ' to ').replace(/\.\s*\./g, '.');
+      const clean = spokenText(text);
       // Short sentence-sized utterances: long single utterances get cut off on iOS/Chrome.
-      const parts = clean.replace(/([.!?])\s+/g, '$1\u0001').split('\u0001').map(x => x.trim()).filter(Boolean);
+      const parts = clean.replace(/([.!?])\s+/g, '$1\u0001').split('\u0001').map(x => x.trim()).filter(x => x && /[a-z0-9]/i.test(x));
+      if (!parts.length) return false;
+      const seq = ++speechSeq; speechActive = true;
+      let left = parts.length;
       const go = () => {
+        if (seq !== speechSeq) return;
         try { s.resume(); } catch (e) {}   // iOS can leave synthesis "paused" after the mic was used
+        const v = pickVoice();
         parts.forEach(p => {
           const u = new SpeechSynthesisUtterance(p);
-          const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-CA';
+          if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-CA';
           u.rate = 1; u.pitch = 1; u.volume = 1;
           liveUtterances.push(u);
-          u.onend = u.onerror = () => { const i = liveUtterances.indexOf(u); if (i >= 0) liveUtterances.splice(i, 1); };
+          u.onend = u.onerror = () => {
+            const i = liveUtterances.indexOf(u); if (i >= 0) liveUtterances.splice(i, 1);
+            if (--left <= 0) notifySpeechDone(seq);
+          };
           s.speak(u);
         });
       };
@@ -1717,10 +1786,45 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
         const busy = s.speaking || s.pending;
         s.cancel();
         if (busy) setTimeout(go, 150); else go();   // speak() right after cancel() is dropped on iOS
-      } catch (e) { return false; }
+      } catch (e) { notifySpeechDone(seq); return false; }
       return true;
     }
-    if (synth()) { try { synth().onvoiceschanged = () => {}; synth().getVoices(); } catch (e) {} }
+    // Calls fn once the current reply has finished speaking (onend, or polling in case iOS never fires onend).
+    function afterSpeech(fn) {
+      const s = synth();
+      let fired = false; const t0 = Date.now();
+      const once = () => { if (fired) return; fired = true; clearInterval(poll); fn(); };
+      if (!speechActive) { setTimeout(once, 0); return; }
+      speechDoneWaiters.push(once);
+      const poll = setInterval(() => {
+        let busy = speechActive;
+        try { if (s && !(s.speaking || s.pending) && Date.now() - t0 > 1200) busy = false; } catch (e) {}
+        if (!busy || Date.now() - t0 > 45000) { speechActive = false; once(); }
+      }, 300);
+    }
+    function refreshVoicePicker() {
+      const sel = document.getElementById('setVoiceName'); if (!sel) return;
+      const vs = englishVoices().slice().sort((a, b) => voiceScore(b) - voiceScore(a));
+      const best = bestVoice(vs);
+      sel.innerHTML = '';
+      const auto = document.createElement('option'); auto.value = ''; auto.textContent = 'Automatic (best available' + (best ? ': ' + best.name : '') + ')'; sel.appendChild(auto);
+      vs.forEach(v => {
+        const o = document.createElement('option'); o.value = v.voiceURI;
+        o.textContent = v.name + ' (' + v.lang + ')' + (/premium|enhanced|natural|neural/i.test(v.name) ? ' ★' : '');
+        sel.appendChild(o);
+      });
+      sel.value = vs.some(v => v.voiceURI === settings.voiceURI) ? settings.voiceURI : '';
+    }
+    if (synth()) {
+      try {
+        const s = synth();
+        const onVoices = () => { refreshVoicePicker(); };
+        if (s.addEventListener) s.addEventListener('voiceschanged', onVoices); else s.onvoiceschanged = onVoices;
+        s.getVoices();
+        // iOS loads voices late and sometimes never fires voiceschanged: check again a few times.
+        [250, 1000, 2500].forEach(ms => setTimeout(onVoices, ms));
+      } catch (e) {}
+    }
 
     // ========== CHAT TRANSCRIPT ==========
     let turnReplies = 0, lastReplyText = '', lastBotEl = null;
@@ -1764,76 +1868,203 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     }
 
     // ========== SPEECH INPUT ==========
+    // Every mic tap tries speech recognition again: a failed attempt never disables the mic for the session.
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-    let rec = null, listening = false, srBroken = false, listenTimer = null, userStopped = false;
+    let rec = null, cur = null, listening = false, starting = false, srFails = 0, lastSrError = '';
+    let listenTimer = null, startTimer = null, stopTimer = null, userStopped = false, recGen = 0, lastTapAt = 0;
+    let loopOn = false, relistenTimer = null, relistenToken = 0, tapToReply = false;
     const FALLBACK_HINT = 'Voice listening isn’t available in this browser (common in Edge and Chrome on iPhone). Tap the box, tap the 🎤 on your iPhone keyboard, say it, then tap Go. Answers are still spoken out loud.';
+    const RETRY_HINT = 'If the mic doesn’t pick you up, tap it again — every tap tries again. You can also tap the box, tap the 🎤 on your iPhone keyboard, say it, then tap Go.';
     function showHint(msg) { const h = document.getElementById('voiceHint'); h.textContent = msg; h.style.display = 'block'; }
-    function setListening(on) {
-      listening = on;
-      document.getElementById('btnMic').classList.toggle('listening', on);
-      document.getElementById('micTitle').textContent = on ? 'Listening… tap to stop' : 'Tap & speak';
+    function hideHint() { const h = document.getElementById('voiceHint'); if (SR) { h.style.display = 'none'; h.textContent = ''; } }
+    function setMicState(mode) {   // 'idle' | 'starting' | 'listening' | 'tapreply'
+      listening = mode === 'listening' || mode === 'starting';
+      starting = mode === 'starting';
+      tapToReply = mode === 'tapreply';
+      const b = document.getElementById('btnMic');
+      b.classList.toggle('listening', listening);
+      b.classList.toggle('tapreply', tapToReply);
+      b.setAttribute('aria-label', listening ? 'Listening, tap to stop' : (tapToReply ? 'Tap to reply' : 'Tap and speak'));
+      document.getElementById('micTitle').textContent = listening ? 'Listening… tap to stop' : (tapToReply ? 'Tap to reply' : 'Tap & speak');
     }
-    function stopListening() { userStopped = true; if (rec) { try { rec.abort(); } catch (e) {} } rec = null; clearTimeout(listenTimer); setListening(false); }
-    function fallbackInput() { showHint(FALLBACK_HINT); document.getElementById('cmdInput').focus(); }
-    function startListening() {
-      unlockSpeech();
-      if (listening) { userStopped = true; try { rec && rec.stop(); } catch (e) {} return; }
-      if (!SR || srBroken) { fallbackInput(); return; }
-      try { synth() && synth().cancel(); } catch (e) {}
-      let finalText = '', interim = '', handled = false, errored = false, gotAudio = false;
+    function setListening(on) { setMicState(on ? 'listening' : 'idle'); }
+    function detachRec(r, abort) {
+      if (!r) return;
+      r.onstart = r.onaudiostart = r.onresult = r.onerror = r.onend = null;   // stale events from an old recognizer must not touch state
+      if (abort) { try { r.abort(); } catch (e) {} }
+    }
+    function clearMicTimers() { clearTimeout(listenTimer); clearTimeout(startTimer); clearTimeout(stopTimer); listenTimer = startTimer = stopTimer = null; }
+    function stopListening() {   // quiet hard stop (page hidden, typed turn)
+      userStopped = true; recGen++;
+      const r = rec; rec = null; cur = null; detachRec(r, true);
+      clearMicTimers(); setMicState('idle');
+    }
+    function endLoop() { loopOn = false; relistenToken++; clearTimeout(relistenTimer); relistenTimer = null; }
+    function fallbackInput() { showHint(SR ? RETRY_HINT : FALLBACK_HINT); document.getElementById('cmdInput').focus(); }
+    function attemptFailed(auto, reason, msg) {
+      srFails++; lastSrError = reason; endLoop();
+      if (auto) { setMicState('tapreply'); return; }   // auto restart needs a tap on iOS: just ask for one
+      fallbackInput();
+      const extra = srFails >= 3 ? ' The mic has missed a few times in a row here, so the keyboard 🎤 may be more reliable, but every tap still tries the mic.' : ' Tap the mic to try again, or tap the box and use the 🎤 on your keyboard.';
+      reply(msg + extra, 'warn');
+    }
+    function micTap() {
+      const now = Date.now();
+      if (listening) {
+        if (now - lastTapAt < 400) return;   // double-tap guard
+        lastTapAt = now; endLoop(); requestStop(); return;
+      }
+      lastTapAt = now; endLoop();
+      startListening({ auto: false });
+    }
+    function requestStop() {
+      userStopped = true;
+      if (starting || !cur) { stopListening(); return; }
+      const c = cur;
+      try { c.r.stop(); } catch (e) {}
+      clearTimeout(stopTimer);
+      stopTimer = setTimeout(() => { if (cur === c) c.forceEnd(); }, 1500);   // iOS sometimes never fires onend
+    }
+    function startListening(opts) {
+      const auto = !!(opts && opts.auto);
+      const s = synth();
+      let busy = false;
+      try { busy = !!(s && (s.speaking || s.pending)); } catch (e) {}
+      if (!auto) unlockSpeech();
+      if (!SR) { if (!auto) fallbackInput(); return; }
+      const old = rec; rec = null; cur = null; detachRec(old, true);
+      clearMicTimers();
+      try { s && s.cancel(); } catch (e) {}
+      const gen = ++recGen;
       userStopped = false;
+      setMicState('starting');
+      // iOS can't open the mic while speech is still playing: give the audio session a moment after cancel().
+      if (busy) startTimer = setTimeout(() => beginRec(gen, auto), 320); else beginRec(gen, auto);
+    }
+    function beginRec(gen, auto) {
+      if (gen !== recGen) return;
+      startTimer = null;
+      let finalText = '', interim = '', handled = false, errored = false, gotAudio = false, r;
       try {
-        rec = new SR();
-        rec.lang = 'en-CA'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
-      } catch (e) { srBroken = true; fallbackInput(); return; }
+        r = new SR();
+        r.lang = 'en-CA'; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+      } catch (e) { setMicState('idle'); attemptFailed(auto, 'could not create', 'Voice listening didn’t start that time.'); return; }
+      rec = r;
+      const c = { r, auto };
+      cur = c;
+      const mine = () => cur === c;
+      const heard = () => (finalText || interim).trim();
+      const finish = () => {
+        if (rec === r) rec = null;
+        if (cur === c) cur = null;
+        detachRec(r, false); clearMicTimers(); setMicState('idle');
+        document.getElementById('cmdInput').placeholder = 'Or type / dictate here…';
+      };
       const done = (t) => {
         if (handled) return; handled = true;
-        clearTimeout(listenTimer); setListening(false);
-        try { rec && rec.stop(); } catch (e) {}
-        runTurn(t, 'voice');
+        srFails = 0; lastSrError = '';
+        finish();
+        try { r.stop(); } catch (e) {}
+        hideHint();
+        voiceTurn(t);
       };
-      rec.onstart = rec.onaudiostart = () => { gotAudio = true; };
-      rec.onresult = (e) => {
+      const quietEnd = () => {   // a silent round in the hands-free loop: stop without nagging
+        endLoop();
+        addMsg('bot', 'I’ve stopped listening. Tap the mic when you need me.', { cls: 'quiet' });
+      };
+      c.forceEnd = () => {
+        if (!mine()) return;
+        const t = heard(); finish(); try { r.abort(); } catch (e) {}
+        if (handled) return;
+        if (t) done(t);
+        else if (userStopped) {}
+        else if (auto) quietEnd();
+        else reply('I stopped listening. Tap the mic and try again.', 'warn');
+      };
+      r.onstart = r.onaudiostart = () => { gotAudio = true; };
+      r.onresult = (e) => {
+        if (!mine()) return;
         gotAudio = true; interim = '';
         for (let i = e.resultIndex; i < e.results.length; i++) {
           const tr = e.results[i][0].transcript;
           if (e.results[i].isFinal) finalText += tr; else interim += tr;
         }
-        document.getElementById('cmdInput').placeholder = '“' + (finalText || interim).trim() + '”';
+        document.getElementById('cmdInput').placeholder = '“' + heard() + '”';
         if (finalText.trim()) done(finalText.trim());
       };
-      rec.onerror = (e) => {
+      r.onerror = (e) => {
+        if (!mine() || handled) return;
         errored = true;
-        const err = e && e.error;
-        setListening(false);
+        const err = (e && e.error) || 'unknown';
+        const t = heard();
+        finish();
+        if (t && err !== 'not-allowed') { done(t); return; }
+        if (err === 'no-speech') { srFails = 0; if (auto) quietEnd(); else reply('I didn’t hear anything. Tap the mic and try again.', 'warn'); }
+        else if (err === 'aborted') { if (!userStopped) attemptFailed(auto, 'aborted', 'I stopped listening before I heard anything.'); }
+        else if (err === 'not-allowed' || err === 'service-not-allowed') {
+          if (auto) { srFails++; lastSrError = err; endLoop(); setMicState('tapreply'); return; }
+          srFails++; lastSrError = err; endLoop();
+          showHint('Microphone permission: on your iPhone open Settings › Edge › Microphone and turn it on (Safari: tap aA › Website Settings › Microphone › Allow). Then tap the mic again.');
+          reply('I don’t have permission to use the microphone. On your iPhone open Settings, then Edge, and turn on Microphone. In Safari, tap the aA button, then Website Settings, and allow the microphone. Then tap the mic again, or type it.', 'warn');
+        }
+        else attemptFailed(auto, err, 'Voice input hit a problem (' + err + ').');
+      };
+      r.onend = () => {
+        if (!mine()) return;
+        const t = heard();
+        finish();
         if (handled) return;
-        if (err === 'not-allowed' || err === 'service-not-allowed') { srBroken = true; fallbackInput(); reply('I can’t use the microphone in this browser. Type it, or tap the 🎤 on your keyboard to dictate.', 'warn'); }
-        else if (err === 'no-speech') reply('I didn’t hear anything. Tap the mic and try again.', 'warn');
-        else if (err === 'aborted') { if (!userStopped && !(finalText || interim).trim()) reply('I stopped listening before I heard anything. Tap the mic and try again.', 'warn'); }
-        else { showHint('Voice error (' + err + '). You can type or use keyboard dictation instead.'); reply('Voice input hit a problem (' + err + '). Type it, or use the 🎤 on your keyboard.', 'warn'); }
+        if (t) { done(t); return; }
+        if (errored || userStopped) return;
+        if (!gotAudio) attemptFailed(auto, 'ended before starting', 'Voice listening didn’t start that time.');
+        else { srFails = 0; if (auto) quietEnd(); else reply('I didn’t catch that. Tap the mic and try again.', 'warn'); }
       };
-      rec.onend = () => {
-        clearTimeout(listenTimer);
-        setListening(false);
-        document.getElementById('cmdInput').placeholder = 'Or type / dictate here…';
-        const t = (finalText || interim).trim();
-        if (!handled && t) done(t);
-        else if (!handled && !errored && !gotAudio) { srBroken = true; fallbackInput(); reply('Voice listening didn’t start in this browser. Type it, or tap the 🎤 on your keyboard to dictate.', 'warn'); }
-        else if (!handled && !errored && !userStopped) reply('I didn’t catch that. Tap the mic and try again.', 'warn');
-        rec = null;
-      };
-      try { rec.start(); setListening(true); }
-      catch (e) { srBroken = true; setListening(false); fallbackInput(); reply('Voice listening didn’t start. Type it, or use the 🎤 on your keyboard.', 'warn'); return; }
-      listenTimer = setTimeout(() => { try { rec && rec.stop(); } catch (e) {} }, 12000);
+      try { r.start(); }
+      catch (e) { finish(); attemptFailed(auto, 'start failed', 'Voice listening didn’t start that time.'); return; }
+      setMicState('listening');
+      listenTimer = setTimeout(() => {   // 12 s cap; if stop() never produces onend, force the end
+        if (!mine()) return;
+        try { r.stop(); } catch (e) {}
+        stopTimer = setTimeout(() => { if (mine()) c.forceEnd(); }, 1500);
+      }, 12000);
     }
-    document.getElementById('btnMic').addEventListener('click', () => startListening());
+    // ---- hands-free loop: after a spoken reply to a voice turn, listen again ----
+    function isStopPhrase(t) {
+      const n = String(t).toLowerCase().replace(/[’']/g, '').replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim()
+        .replace(/^(ok|okay|alright|all right|well)\s+/, '');
+      return /^(im |were |thats |that is )?(done|all done|finished|stop|stop listening|thats all|thats it|that is all|that is it|bye|bye bye|goodbye|good bye|see you|see ya|talk later|talk to you later|thanks|thank you|thanks a lot|thank you very much|thanks very much|no thanks|no thank you)( thanks| thank you| bye)?$/.test(n);
+    }
+    function voiceTurn(t) {
+      if (settings.keepListening !== false) loopOn = true;
+      if (isStopPhrase(t)) {
+        addMsg('user', t);
+        const p = convo.pending; convo.pending = null;
+        endLoop();
+        reply(p ? 'Okay, I’ve cancelled that. Nothing was changed. Talk later.' : 'Okay, talk later.');
+        return;
+      }
+      runTurn(t, 'voice');
+      if (loopOn) scheduleRelisten();
+    }
+    function scheduleRelisten() {
+      const token = ++relistenToken;
+      const ok = () => token === relistenToken && loopOn && !document.hidden && !listening;
+      afterSpeech(() => {
+        if (!ok()) return;
+        clearTimeout(relistenTimer);
+        relistenTimer = setTimeout(() => { if (ok()) startListening({ auto: true }); }, 350);
+      });
+    }
+    document.getElementById('btnMic').addEventListener('click', () => micTap());
     document.getElementById('cmdForm').addEventListener('submit', (e) => {
       e.preventDefault(); unlockSpeech();
       const inp = document.getElementById('cmdInput');
       const t = inp.value.trim(); if (!t) { inp.focus(); return; }
       inp.value = ''; inp.blur();
+      endLoop(); if (listening) stopListening();   // typed turns don't auto-listen
       runTurn(t, 'typed');
     });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { endLoop(); if (listening) stopListening(); if (tapToReply) setMicState('idle'); } });
     if (!SR) showHint(FALLBACK_HINT);
 
     // ========== CONVERSATION ==========
@@ -2182,9 +2413,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     document.getElementById('btnSettings').addEventListener('click', () => {
       document.getElementById('setCarry').checked = !!settings.carryOver;
       document.getElementById('setVoice').checked = !!settings.voice;
+      document.getElementById('setKeepListening').checked = settings.keepListening !== false;
+      refreshVoicePicker();
       const info = [];
       info.push('Pay periods: 1st–14th and 15th–end of month. Current: ' + curP().label + '.');
-      info.push('Speech recognition: ' + (SR ? (srBroken ? 'blocked in this browser' : 'available') : 'not available here — use keyboard dictation') + '. Spoken replies: ' + ('speechSynthesis' in window ? 'available' : 'not available') + '.');
+      info.push('Speech recognition: ' + (SR ? 'available' + (srFails ? ' (the last ' + (srFails === 1 ? 'try' : srFails + ' tries') + ' didn’t work: ' + lastSrError + '; every mic tap tries again)' : '') : 'not available here — use keyboard dictation') + '. Spoken replies: ' + ('speechSynthesis' in window ? 'available' : 'not available') + (pickVoice() ? ' (voice: ' + pickVoice().name + ')' : '') + '.');
       if (!storageOk) info.push('Warning: this browser is not saving data. Export a backup before closing.');
       info.push('Last backup: ' + (settings.lastBackup ? formatDate(settings.lastBackup) : 'never') + '.');
       document.getElementById('settingsInfo').textContent = info.join(' ');
@@ -2192,6 +2425,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     });
     document.getElementById('setCarry').addEventListener('change', (e) => { settings.carryOver = e.target.checked; save(); });
     document.getElementById('setVoice').addEventListener('change', (e) => { settings.voice = e.target.checked; save(); if (e.target.checked) { unlockSpeech(); speak('Spoken replies are on.'); } });
+    document.getElementById('setKeepListening').addEventListener('change', (e) => { settings.keepListening = e.target.checked; save(); if (!e.target.checked) endLoop(); });
+    document.getElementById('setVoiceName').addEventListener('change', (e) => { settings.voiceURI = e.target.value; save(); unlockSpeech(); speak('Hi George, this is how I sound.'); });
+    document.getElementById('btnTestVoice').addEventListener('click', () => { unlockSpeech(); speak('Hi George. You have $212.50 left in Groceries, and $640 left overall this pay period.'); });
     document.getElementById('closeSettings').addEventListener('click', () => closeModal('modalSettings'));
 
     // ========== BACKUP ==========
@@ -2292,7 +2528,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     })();
 
     // Test hook (harmless in normal use)
-    window.__budget = { runCommand, checkRollover, state: () => ({ envelopes, history, settings, currentPeriod, periods }), totalAvailable, totalBudget, spentThisPeriod, prepareImport, runTurn, convo, lastReply: () => lastReplyText, load, render, setViewKey: k => { viewKey = k; } };
+    window.__budget = { mic: () => ({ listening, starting, srFails, lastSrError, loopOn, tapToReply, recGen }), voice: { pickVoice: () => { const v = pickVoice(); return v && { name: v.name, lang: v.lang, voiceURI: v.voiceURI }; }, spokenText, voiceScore }, runCommand, checkRollover, state: () => ({ envelopes, history, settings, currentPeriod, periods }), totalAvailable, totalBudget, spentThisPeriod, prepareImport, runTurn, convo, lastReply: () => lastReplyText, load, render, setViewKey: k => { viewKey = k; } };
 
   </script>
 </body>
