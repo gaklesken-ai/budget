@@ -428,6 +428,15 @@
     textarea { width: 100%; min-height: 160px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 0.8rem; }
     .muted-note { color: var(--text-muted); font-size: 0.8rem; margin-top: 6px; }
     .toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 10px; z-index: 200; display: none; font-size: 0.9rem; max-width: 90%; }
+    .chat-log { display: none; flex-direction: column; gap: 8px; margin-top: 12px; max-height: 46vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px; }
+    .msg { max-width: 88%; padding: 10px 12px; border-radius: 14px; font-size: 0.98rem; line-height: 1.35; white-space: pre-line; word-wrap: break-word; }
+    .msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.bot { align-self: flex-start; background: var(--surface2); border: 1px solid var(--border); border-bottom-left-radius: 4px; font-weight: 500; }
+    .msg.bot.ok { border-color: var(--green); }
+    .msg.bot.warn { border-color: var(--orange); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip { padding: 9px 12px; font-size: 0.9rem; border-radius: 18px; background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .chip.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   </style>
 </head>
 <body>
@@ -489,8 +498,7 @@
         <button class="btn-primary" type="submit">Go</button>
       </form>
       <div class="voice-hint" id="voiceHint"></div>
-      <div class="voice-heard" id="voiceHeard"></div>
-      <div class="voice-reply" id="voiceReply"></div>
+      <div class="chat-log" id="chatLog" aria-live="polite"></div>
     </div>
 
     <div class="envelopes" id="envelopesList"></div>
@@ -623,24 +631,6 @@
         <button class="btn-danger" type="button" id="btnDeleteEnv" style="flex: 1;">Delete Envelope</button>
       </div>
       <p class="hint-text" id="deleteHint"></p>
-    </div>
-  </div>
-
-  <!-- Which envelope? Modal -->
-  <div class="modal-overlay" id="modalAsk">
-    <div class="modal">
-      <h2>Which envelope?</h2>
-      <p class="ask-sub" id="askSub"></p>
-      <div class="choice-grid" id="askChoices"></div>
-      <div class="modal-actions">
-        <button class="btn-primary" type="button" id="askMic">🎤 Answer by voice</button>
-        <button class="btn-secondary" type="button" id="askCancel">Cancel</button>
-      </div>
-      <form class="cmd-form" id="askForm" autocomplete="off">
-        <input type="text" id="askInput" placeholder="Or type / dictate the envelope…" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" />
-        <button class="btn-secondary" type="submit">OK</button>
-      </form>
-      <p class="muted-note" id="askHint"></p>
     </div>
   </div>
 
@@ -914,7 +904,7 @@ var BudgetParser = (function () {
   }
 
   // Intents: cancel, undo, help, create, daysLeft, list, last, spentQuery, query (remaining), setBudget, fill, spend, unknown
-  function parse(raw, envNames) {
+  function parseCore(raw, envNames) {
     var t = norm(raw);
     var res = { raw: String(raw || ''), intent: 'unknown', amount: null, envelope: null, candidates: [], how: '', scope: null, name: null };
     if (!t) return res;
@@ -970,14 +960,140 @@ var BudgetParser = (function () {
     else if (budgetWord && amount != null) res.intent = 'setBudget';
     else if (spendVerb && amount != null) res.intent = 'spend';
     else if (fillVerb && amount != null) res.intent = 'fill';
-    else if (amount != null && (r.envelope || r.candidates.length || spendVerb || /(^| )(at|on)( |$)/.test(t) || /^\$?\d/.test(t))) res.intent = 'spend';
-    else if (amount != null) res.intent = 'spend';
+    else if (amount != null && (r.envelope || r.candidates.length || spendVerb || /(^| )(at|on)( |$)/.test(t) || /^\$?\d/.test(t))) { res.intent = 'spend'; res.defaulted = true; }
+    else if (amount != null) { res.intent = 'spend'; res.defaulted = true; }
     else if (spendVerb || fillVerb) res.intent = spendVerb ? 'spend' : 'fill'; // amount missing -> app asks
-    else if (r.envelope && t.split(' ').length <= 3) res.intent = 'query';
+    else if (r.envelope && t.split(' ').length <= 3) { res.intent = 'query'; res.defaulted = true; }
     return res;
   }
 
-  return { parse: parse, resolveEnvelope: resolveEnvelope, extractAmount: extractAmount, wordsToDigits: wordsToDigits, norm: norm, GROUPS: GROUPS, scopeOf: scopeOf };
+
+  // ---------- conversational layer on top of parseCore ----------
+  var YES = /^(?:(?:yes|yeah|yea|yep|yup|ya|sure|ok|okay|go ahead|please|correct|right|confirm|confirmed|sounds good|absolutely|definitely|of course|thats right|that s right|that is right|do it|do that|do this|please do|affirmative|record it|go for it|yes please|thanks|thank you)(?: |$))+$/;
+  var NO = /^(no|nope|nah|no thanks|no thank you|dont|do not|dont do that|negative|not now|no dont|wrong|no way)$/;
+  var CANCEL = /^(cancel|never ?mind|stop|forget it|forget that|nothing|skip it|skip|leave it)( please| thanks)?$/;
+  var GREET = /^(hi|hello|hey|hey there|hi there|hello there|good (morning|afternoon|evening)|howdy|yo|morning|evening)( budget| buddy| there| app)?$/;
+  var THANKS = /^(thanks|thank you|thank you very much|thanks a lot|thanks so much|cheers|awesome|great|perfect|cool|nice|good|got it|appreciate it|much appreciated|good job|well done|sweet|excellent|ok thanks|okay thanks|thats great|that s great|great thanks|perfect thanks)( .{0,20})?$/;
+  var REF = /(^| )(this|that|it|same|the same|this one|that one)( one| envelope)?( |$)/;
+  function hasRef(t) {
+    return REF.test(t.replace(/(^| )(this|that|it s|its) (pay ?period|payperiod|pay ?cheque|period|week|month|year|morning|afternoon|evening|time|weekend|day|is all|all)( |$)/g, ' ').replace(/(^| )(thats it|that s it|is it|it is)( |$)/g, ' '));
+  }
+  var ACTIONS = { spend: 1, fill: 1, setBudget: 1, transfer: 1, correct: 1, create: 1, rename: 1, deleteEnv: 1, afford: 1 };
+
+  function cleanName(s) {
+    return titleCase(String(s || '').replace(/^(the|a|an|my|called|named|it|call it|name it|lets call it|let s call it|how about)( |$)/g, '')
+      .replace(/(^| )(envelope|please|thanks|thank you)( |$)/g, ' ').replace(/\s+/g, ' ').trim());
+  }
+
+  function segEnv(seg, envNames) {
+    if (!seg) return { envelope: null, candidates: [] };
+    var r = resolveEnvelope(seg, envNames);
+    return { envelope: r.envelope, candidates: r.candidates };
+  }
+
+  // "50 from groceries to fuel", "move 20 into fuel from groceries", "take 30 out of fuel and put it in clothes"
+  function transferSlots(t, envNames) {
+    var out = { from: null, to: null, fromCandidates: [], toCandidates: [], amount: null };
+    var fromSeg = null, toSeg = null, m;
+    m = t.match(/(?:^| )(?:from|out of|outta)( .+?)(?= (?:to|into|in|over to|and put it in|and put it into|and add it to)(?: |$)|$)/);
+    if (m) fromSeg = m[1];
+    m = t.match(/(?:^| )(?:to|into|in|over to|put it in|put it into|add it to)( .+?)(?= (?:from|out of)(?: |$)|$)/);
+    if (m) toSeg = m[1];
+    var f = segEnv(fromSeg, envNames), g = segEnv(toSeg, envNames);
+    out.from = f.envelope; out.fromCandidates = f.candidates; out.to = g.envelope; out.toCandidates = g.candidates;
+    if (!fromSeg && !toSeg) {
+      var r = resolveEnvelope(t, envNames);
+      if (r.envelope) out.single = r.envelope;
+    }
+    out.amount = extractAmount(resolveEnvelope(t, envNames).text);
+    return out;
+  }
+
+  function parse(raw, envNames) {
+    var t = norm(raw);
+    var base = { raw: String(raw || ''), intent: 'unknown', amount: null, envelope: null, candidates: [], how: '', scope: null, name: null, explicit: true, ref: false };
+    if (!t) return base;
+    function out(o) { var r = Object.assign({}, base, o); r.ref = hasRef(t); return r; }
+    if (CANCEL.test(t)) return out({ intent: 'cancel' });
+    if (YES.test(t) && !/^(thanks|thank you)( |$)/.test(t)) return out({ intent: 'yes' });
+    if (NO.test(t)) return out({ intent: 'no' });
+    if (GREET.test(t)) return out({ intent: 'greet' });
+    if (THANKS.test(t) && !/\d/.test(t)) return out({ intent: 'thanks' });
+    if (/^(do (this|that|it)( for me)?|go|do the thing|make it so|handle it|take care of it)$/.test(t)) return out({ intent: 'doThis' });
+    if (/^(what can (you|i) (do|say)|what do you do|help|help me|commands|options|what are my options|what can i ask( you)?|how does this work|how do (i|you) use (this|you|it))( please)?$/.test(t)) return out({ intent: 'help' });
+
+    // Question / request forms: "can I add money to an envelope", "how do I move money", "I want to add 50 to fuel"
+    var qm = t.match(/^(?:can|could|would|will|may) (?:i|you|we)(?: please)?(?: just)? (.*)$/) ||
+             t.match(/^how (?:do|can|would|should|could) (?:i|you|we)(?: go about)? (.*)$/) ||
+             t.match(/^(?:is (?:it|there a way)(?: possible)?(?: for me)? to|is there a way to) (.*)$/) ||
+             t.match(/^(?:i want to|i wanna|i d like to|id like to|i would like to|i need to|lets|let s|help me|please|i gotta|i have to) (.*)$/);
+    if (qm && qm[1]) {
+      var rest = qm[1].replace(/\?+$/, '').trim();
+      // affordability: "can I spend 60 on clothes", "can I afford 200 for fuel"
+      if (/^(afford|spend|buy|get)( |$)/.test(rest) && /^can|^could/.test(t)) {
+        var ra = parseCore(rest.replace(/^afford/, 'spend'), envNames);
+        if (ra.amount != null) return out({ intent: 'afford', amount: ra.amount, envelope: ra.envelope, candidates: ra.candidates, question: true });
+      }
+      var r2 = parse(rest, envNames);
+      if (r2.intent !== 'unknown') { r2.question = true; r2.explicit = true; r2.raw = base.raw; return r2; }
+      var topic = /(add|put|deposit|fund|top up|load)/.test(rest) ? 'fill' : /(move|transfer|shift|switch)/.test(rest) ? 'transfer'
+        : /(budget)/.test(rest) ? 'setBudget' : /(fix|correct|change|edit|wrong|mistake)/.test(rest) ? 'correct'
+        : /(spend|spent|record|log|enter|track|expense|purchase)/.test(rest) ? 'spend' : /(rename)/.test(rest) ? 'rename'
+        : /(delete|remove)/.test(rest) ? 'deleteEnv' : /(envelope)/.test(rest) ? 'create' : null;
+      if (topic) return out({ intent: topic, question: true });
+      return out({ intent: 'help', question: true });
+    }
+
+    // Undo (before corrections)
+    if (/(^| )(undo|scratch that|take that back|oops|(delete|remove|cancel|erase|undo) (the |my |that )?last( one| entry| expense| transaction| thing| purchase| spend)?)( |$)/.test(t) && !/ to /.test(t)) {
+      return out({ intent: 'undo' });
+    }
+
+    // Transfers between envelopes
+    if (/(^| )(move|moved|transfer|transferred|shift|switch|take|took|swap)( |$)/.test(t) &&
+        (/(^| )(from|out of|outta)( |$)/.test(t) || /(^| )(move|transfer|shift) (some )?(money|cash|funds)( |$)/.test(t) || /(^| )(move|transfer|shift) \$?\d/.test(t))) {
+      var ts = transferSlots(t, envNames);
+      return out({ intent: 'transfer', amount: ts.amount, from: ts.from, to: ts.to, fromCandidates: ts.fromCandidates, toCandidates: ts.toCandidates, single: ts.single || null });
+    }
+
+    // Corrections to the last transaction
+    var corr = /wrong (one|envelope|category|spot|place|amount|number)|in the wrong|should (have|ve|of) (been|gone|went)|shouldve (been|gone)|supposed to (be|go)|(^| )(move|put|switch|change|make|fix|correct|edit) (that|it|this|the last( one| entry| expense| transaction| spend| purchase)?|last one|that last one)( |$)|(^| )(that|it|this) (was|is|should be|shoulda been) (for|in|under|from|actually|really|meant|supposed)|(that|it) was actually|(^| )(that|it|this) (was|is|should be) \$?\d|meant (to say|for)? ?|(^| )not \$?\d+.*\$?\d|(^| )actually( |$)|that s wrong|thats wrong|that is wrong|mistake|^not [a-z]/;
+    if (corr.test(t) && !/^(how much|what)/.test(t)) {
+      var noNot = t.replace(/(^| )(last|wrong|that|this|same|right|other|correct) one( |$)/g, ' ').replace(/(^| )not \$?\d+(\.\d+)?( dollars?| bucks?)?/g, ' ');
+      var rc = resolveEnvelope(noNot.replace(/(^| )(the )?wrong (one|envelope)/g, ' '), envNames);
+      var notEnv = null, nm2 = String(raw).toLowerCase().replace(/[.!?]/g, '').match(/(?:^| )not (?:in |for |from )?(?:the )?([a-z][a-z ]*?)(?:,| but| it| should|$)/);
+      if (nm2) { var rn = resolveEnvelope(nm2[1], envNames); notEnv = rn.envelope; }
+      var cands = rc.candidates.filter(function (c) { return c !== notEnv; });
+      var amt2 = extractAmount(rc.text);
+      return out({ intent: 'correct', amount: amt2, envelope: cands.length === 1 ? cands[0] : null, candidates: cands, notEnvelope: notEnv,
+        wantsEnvelope: /wrong (one|envelope|category|spot|place)|in the wrong|envelope/.test(t) });
+    }
+
+    // Rename / delete envelope
+    var rn2 = t.match(/^(?:rename|change the name of|change name of)(?: the| my)?(?: (.+?))?(?: envelope)? (?:to|as|into) (.+)$/);
+    if (rn2) {
+      var re2 = rn2[1] ? segEnv(rn2[1], envNames) : { envelope: null, candidates: [] };
+      return out({ intent: 'rename', envelope: re2.envelope, candidates: re2.candidates, newName: cleanName(rn2[2]) });
+    }
+    if (/^rename( (this|that|it|the|my|an|a))?( envelope)?$|^rename (.+)$/.test(t)) {
+      var re3 = resolveEnvelope(t.replace(/^rename/, ''), envNames);
+      return out({ intent: 'rename', envelope: re3.envelope, candidates: re3.candidates, newName: null });
+    }
+    var dm = t.match(/^(?:delete|remove|get rid of|close|erase)(?: the| my| this| that)?(?: (.+?))? envelope$/) || t.match(/^(?:delete|remove|get rid of|close) envelope (.+)$/);
+    if (dm) {
+      var de = dm[1] ? segEnv(dm[1], envNames) : { envelope: null, candidates: [] };
+      return out({ intent: 'deleteEnv', envelope: de.envelope, candidates: de.candidates });
+    }
+    if (/^(create|make|add|start|open|new)( me)?( a| an)?( new)? envelope$/.test(t)) return out({ intent: 'create', name: null });
+
+    var core = parseCore(raw, envNames);
+    core.explicit = !core.defaulted && core.intent !== 'unknown';
+    core.ref = hasRef(t);
+    if (core.intent === 'cancel') core.intent = 'cancel';
+    return core;
+  }
+
+  return { parse: parse, parseCore: parseCore, transferSlots: transferSlots, cleanName: cleanName, ACTIONS: ACTIONS, resolveEnvelope: resolveEnvelope, extractAmount: extractAmount, wordsToDigits: wordsToDigits, norm: norm, GROUPS: GROUPS, scopeOf: scopeOf };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = BudgetParser;
 
@@ -1037,7 +1153,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     let clearHistoryPending = false;
     let viewKey = null;         // pay period being viewed
     let pendingDeleteId = null;
-    let pendingAsk = null;      // { parsed } waiting for "Which envelope?"
+    const convo = { pending: null, lastEnvId: null, lastEntryId: null };  // conversation memory for this session
     let pendingImport = null;
 
     const STORAGE_KEY = 'envelope-budget-v2';
@@ -1144,7 +1260,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     }
     function curP() { return Period.fromKey(currentPeriod); }
     function spentThisPeriod(envId) { const p = curP(); return spentBetween(p.start, p.end, envId); }
-    function addEntry(o) { const h = Object.assign({ id: uid(), ts: Date.now(), note: '' }, o); history.push(h); return h; }
+    function addEntry(o) {
+      const h = Object.assign({ id: uid(), ts: Date.now(), note: '' }, o); history.push(h);
+      if (!h.kind && typeof convo !== 'undefined') { convo.lastEntryId = h.id; convo.lastEnvId = h.envelopeId; }
+      return h;
+    }
     function nice(d) { return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }); }
 
     // ========== PAY PERIODS (1st–14th, 15th–end) ==========
@@ -1315,7 +1435,6 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
         const hint = document.getElementById('deleteHint');
         if (hint) { hint.style.display = 'none'; hint.textContent = ''; }
       }
-      if (id === 'modalAsk') { pendingAsk = null; stopListening(); }
     }
     document.querySelectorAll('.modal-overlay').forEach(el => {
       el.addEventListener('click', (e) => { if (e.target === el) closeModal(el.id); });
@@ -1424,8 +1543,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       if (!env) return;
       doSpend(env, amount, note, 'tap');
       closeModal('modalSpend');
-      document.getElementById('voiceHeard').textContent = '';
-      reply(`Spent ${money(amount)} from ${env.name}.\n` + remainingLine(env), 'ok', { undo: true, speakText: remainingLine(env) });
+      reply(`Spent ${money(amount)} from ${env.name}.\n` + remainingLine(env), 'ok', { undo: true, speakText: remainingLine(env), noScroll: true });
     });
 
     document.getElementById('btnFill').addEventListener('click', () => {
@@ -1453,9 +1571,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       });
       if (!added.length) { alert('Enter at least one amount'); return; }
       save(); render(); closeModal('modalFill');
-      document.getElementById('voiceHeard').textContent = '';
-      if (added.length === 1) reply(`Added ${money(added[0][1])} to ${added[0][0].name}.\n` + remainingLine(added[0][0]), 'ok', { undo: true, speakText: remainingLine(added[0][0]) });
-      else { const t = `Added money to ${added.length} envelopes. ${money(totalAvailable())} left this pay period.`; reply(t, 'ok', { undo: true }); }
+      if (added.length === 1) reply(`Added ${money(added[0][1])} to ${added[0][0].name}.\n` + remainingLine(added[0][0]), 'ok', { undo: true, speakText: remainingLine(added[0][0]), noScroll: true });
+      else { const t = `Added money to ${added.length} envelopes. ${money(totalAvailable())} left this pay period.`; reply(t, 'ok', { undo: true, noScroll: true }); }
     });
 
     // Budgets modal
@@ -1562,41 +1679,82 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       save(); render();
     });
 
-    document.getElementById('btnUndo').addEventListener('click', () => { unlockSpeech(); runCommand('undo', 'button'); });
+    document.getElementById('btnUndo').addEventListener('click', () => { unlockSpeech(); runTurn('undo', 'button', '↶ Undo'); });
 
     // ========== SPEECH OUTPUT ==========
     let speechUnlocked = false;
+    const liveUtterances = [];   // keep references so iOS/Chrome don't garbage-collect utterances mid-speech
+    function synth() { return ('speechSynthesis' in window) ? window.speechSynthesis : null; }
     function pickVoice() {
       try {
-        const vs = window.speechSynthesis.getVoices() || [];
+        const vs = synth().getVoices() || [];
         return vs.find(v => /en-CA/i.test(v.lang)) || vs.find(v => /en-US/i.test(v.lang) && /samantha|alex|aaron|nicky/i.test(v.name)) || vs.find(v => /^en/i.test(v.lang)) || null;
       } catch (e) { return null; }
     }
     function unlockSpeech() {
-      if (speechUnlocked || !('speechSynthesis' in window)) return;
-      try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); speechUnlocked = true; } catch (e) {}
+      const s = synth();
+      if (speechUnlocked || !s) return;
+      try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; s.speak(u); speechUnlocked = true; } catch (e) {}
     }
     function speak(text) {
-      if (!settings.voice || !('speechSynthesis' in window) || !text) return;
+      const s = synth();
+      if (!settings.voice || !s || !text) return false;
+      const clean = String(text).replace(/[“”"]/g, '').replace(/\n+/g, '. ').replace(/–/g, ' to ').replace(/\.\s*\./g, '.');
+      // Short sentence-sized utterances: long single utterances get cut off on iOS/Chrome.
+      const parts = clean.replace(/([.!?])\s+/g, '$1\u0001').split('\u0001').map(x => x.trim()).filter(Boolean);
+      const go = () => {
+        try { s.resume(); } catch (e) {}   // iOS can leave synthesis "paused" after the mic was used
+        parts.forEach(p => {
+          const u = new SpeechSynthesisUtterance(p);
+          const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-CA';
+          u.rate = 1; u.pitch = 1; u.volume = 1;
+          liveUtterances.push(u);
+          u.onend = u.onerror = () => { const i = liveUtterances.indexOf(u); if (i >= 0) liveUtterances.splice(i, 1); };
+          s.speak(u);
+        });
+      };
       try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(String(text).replace(/\n/g, ' ').replace(/–/g, ' to '));
-        const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-CA';
-        u.rate = 1; u.pitch = 1; u.volume = 1;
-        window.speechSynthesis.speak(u);
-      } catch (e) {}
+        const busy = s.speaking || s.pending;
+        s.cancel();
+        if (busy) setTimeout(go, 150); else go();   // speak() right after cancel() is dropped on iOS
+      } catch (e) { return false; }
+      return true;
     }
-    if ('speechSynthesis' in window) { try { window.speechSynthesis.onvoiceschanged = () => {}; window.speechSynthesis.getVoices(); } catch (e) {} }
+    if (synth()) { try { synth().onvoiceschanged = () => {}; synth().getVoices(); } catch (e) {} }
 
+    // ========== CHAT TRANSCRIPT ==========
+    let turnReplies = 0, lastReplyText = '', lastBotEl = null;
+    function addMsg(who, text, opts) {
+      opts = opts || {};
+      const log = document.getElementById('chatLog');
+      const el = document.createElement('div');
+      el.className = 'msg ' + who + (opts.cls ? ' ' + opts.cls : '');
+      const body = document.createElement('div'); body.className = 'msg-text'; body.textContent = text; el.appendChild(body);
+      if (opts.chips && opts.chips.length) {
+        const c = document.createElement('div'); c.className = 'chips';
+        opts.chips.forEach(ch => {
+          const b = document.createElement('button'); b.type = 'button';
+          b.className = 'chip' + (ch.primary ? ' primary' : ''); b.textContent = ch.label;
+          b.addEventListener('click', () => { unlockSpeech(); if (ch.action) ch.action(); else runTurn(ch.say, 'tap', ch.label); });
+          c.appendChild(b);
+        });
+        el.appendChild(c);
+      }
+      log.appendChild(el);
+      while (log.children.length > 40) log.removeChild(log.firstChild);
+      log.style.display = 'flex';
+      log.scrollTop = log.scrollHeight;
+      return el;
+    }
     function reply(text, cls, opts) {
       opts = opts || {};
-      const box = document.getElementById('voiceReply');
-      box.className = 'voice-reply ' + (cls || '');
-      box.style.display = 'block';
-      box.innerHTML = escapeHtml(text) + (opts.undo ? '<div class="reply-actions"><button class="btn-secondary btn-small" type="button" id="replyUndo">↶ Undo</button></div>' : '');
-      const ub = document.getElementById('replyUndo');
-      if (ub) ub.addEventListener('click', () => runCommand('undo', 'button'));
+      turnReplies++;
+      lastReplyText = text;
+      const chips = (opts.chips || []).slice();
+      if (opts.undo) chips.push({ label: '↶ Undo', say: 'undo' });
+      lastBotEl = addMsg('bot', text, { cls, chips });
       if (!opts.silent) speak(opts.speakText || text);
+      if (!opts.noScroll) { try { document.getElementById('chatLog').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} }
     }
     let toastTimer = null;
     function toast(msg) {
@@ -1607,93 +1765,89 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
 
     // ========== SPEECH INPUT ==========
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-    let rec = null, listening = false, srBroken = false, listenTimer = null;
+    let rec = null, listening = false, srBroken = false, listenTimer = null, userStopped = false;
     const FALLBACK_HINT = 'Voice listening isn’t available in this browser (common in Edge and Chrome on iPhone). Tap the box, tap the 🎤 on your iPhone keyboard, say it, then tap Go. Answers are still spoken out loud.';
     function showHint(msg) { const h = document.getElementById('voiceHint'); h.textContent = msg; h.style.display = 'block'; }
-    function setListening(on, mode) {
+    function setListening(on) {
       listening = on;
-      const b = mode === 'answer' ? document.getElementById('askMic') : document.getElementById('btnMic');
-      document.getElementById('btnMic').classList.toggle('listening', on && mode !== 'answer');
-      document.getElementById('micTitle').textContent = on && mode !== 'answer' ? 'Listening… tap to stop' : 'Tap & speak';
-      document.getElementById('askMic').textContent = on && mode === 'answer' ? '● Listening… tap to stop' : '🎤 Answer by voice';
-      void b;
+      document.getElementById('btnMic').classList.toggle('listening', on);
+      document.getElementById('micTitle').textContent = on ? 'Listening… tap to stop' : 'Tap & speak';
     }
-    function stopListening() { if (rec) { try { rec.abort(); } catch (e) {} } rec = null; clearTimeout(listenTimer); setListening(false); }
-    function fallbackInput(mode) {
-      showHint(FALLBACK_HINT);
-      document.getElementById('askHint').textContent = mode === 'answer' ? 'Type the envelope name, or tap the 🎤 on your keyboard to dictate it.' : '';
-      const inp = document.getElementById(mode === 'answer' ? 'askInput' : 'cmdInput');
-      inp.focus();
-    }
-    function startListening(mode) {
+    function stopListening() { userStopped = true; if (rec) { try { rec.abort(); } catch (e) {} } rec = null; clearTimeout(listenTimer); setListening(false); }
+    function fallbackInput() { showHint(FALLBACK_HINT); document.getElementById('cmdInput').focus(); }
+    function startListening() {
       unlockSpeech();
-      if (listening) { try { rec && rec.stop(); } catch (e) {} return; }
-      if (!SR || srBroken) { fallbackInput(mode); return; }
-      try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+      if (listening) { userStopped = true; try { rec && rec.stop(); } catch (e) {} return; }
+      if (!SR || srBroken) { fallbackInput(); return; }
+      try { synth() && synth().cancel(); } catch (e) {}
       let finalText = '', interim = '', handled = false, errored = false, gotAudio = false;
+      userStopped = false;
       try {
         rec = new SR();
         rec.lang = 'en-CA'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
-      } catch (e) { srBroken = true; fallbackInput(mode); return; }
+      } catch (e) { srBroken = true; fallbackInput(); return; }
       const done = (t) => {
         if (handled) return; handled = true;
-        clearTimeout(listenTimer); setListening(false, mode);
+        clearTimeout(listenTimer); setListening(false);
         try { rec && rec.stop(); } catch (e) {}
-        if (mode === 'answer') handleAnswer(t); else runCommand(t, 'voice');
+        runTurn(t, 'voice');
       };
       rec.onstart = rec.onaudiostart = () => { gotAudio = true; };
       rec.onresult = (e) => {
-        gotAudio = true;
-        interim = '';
+        gotAudio = true; interim = '';
         for (let i = e.resultIndex; i < e.results.length; i++) {
           const tr = e.results[i][0].transcript;
           if (e.results[i].isFinal) finalText += tr; else interim += tr;
         }
-        document.getElementById('voiceHeard').textContent = '“' + (finalText || interim).trim() + '”';
+        document.getElementById('cmdInput').placeholder = '“' + (finalText || interim).trim() + '”';
         if (finalText.trim()) done(finalText.trim());
       };
       rec.onerror = (e) => {
         errored = true;
         const err = e && e.error;
-        if (err === 'not-allowed' || err === 'service-not-allowed') { srBroken = true; setListening(false, mode); fallbackInput(mode); }
-        else if (err === 'no-speech') { setListening(false, mode); reply('I didn’t hear anything. Tap the mic and try again.', 'warn'); }
-        else if (err === 'aborted') { setListening(false, mode); }
-        else { setListening(false, mode); showHint('Voice error (' + err + '). You can type or use keyboard dictation instead.'); }
+        setListening(false);
+        if (handled) return;
+        if (err === 'not-allowed' || err === 'service-not-allowed') { srBroken = true; fallbackInput(); reply('I can’t use the microphone in this browser. Type it, or tap the 🎤 on your keyboard to dictate.', 'warn'); }
+        else if (err === 'no-speech') reply('I didn’t hear anything. Tap the mic and try again.', 'warn');
+        else if (err === 'aborted') { if (!userStopped && !(finalText || interim).trim()) reply('I stopped listening before I heard anything. Tap the mic and try again.', 'warn'); }
+        else { showHint('Voice error (' + err + '). You can type or use keyboard dictation instead.'); reply('Voice input hit a problem (' + err + '). Type it, or use the 🎤 on your keyboard.', 'warn'); }
       };
       rec.onend = () => {
         clearTimeout(listenTimer);
-        setListening(false, mode);
+        setListening(false);
+        document.getElementById('cmdInput').placeholder = 'Or type / dictate here…';
         const t = (finalText || interim).trim();
         if (!handled && t) done(t);
-        else if (!handled && !errored && !gotAudio) { srBroken = true; fallbackInput(mode); } // API exposed but dead (some iOS in-app browsers)
-        else if (!handled && !errored) reply('I didn’t catch that. Tap the mic and try again.', 'warn');
+        else if (!handled && !errored && !gotAudio) { srBroken = true; fallbackInput(); reply('Voice listening didn’t start in this browser. Type it, or tap the 🎤 on your keyboard to dictate.', 'warn'); }
+        else if (!handled && !errored && !userStopped) reply('I didn’t catch that. Tap the mic and try again.', 'warn');
         rec = null;
       };
-      try { rec.start(); setListening(true, mode); document.getElementById('voiceHeard').textContent = ''; }
-      catch (e) { srBroken = true; setListening(false, mode); fallbackInput(mode); return; }
+      try { rec.start(); setListening(true); }
+      catch (e) { srBroken = true; setListening(false); fallbackInput(); reply('Voice listening didn’t start. Type it, or use the 🎤 on your keyboard.', 'warn'); return; }
       listenTimer = setTimeout(() => { try { rec && rec.stop(); } catch (e) {} }, 12000);
     }
-    document.getElementById('btnMic').addEventListener('click', () => startListening('command'));
-    document.getElementById('askMic').addEventListener('click', () => startListening('answer'));
+    document.getElementById('btnMic').addEventListener('click', () => startListening());
     document.getElementById('cmdForm').addEventListener('submit', (e) => {
       e.preventDefault(); unlockSpeech();
       const inp = document.getElementById('cmdInput');
       const t = inp.value.trim(); if (!t) { inp.focus(); return; }
       inp.value = ''; inp.blur();
-      document.getElementById('voiceHeard').textContent = '“' + t + '”';
-      runCommand(t, 'typed');
+      runTurn(t, 'typed');
     });
-    document.getElementById('askForm').addEventListener('submit', (e) => {
-      e.preventDefault(); unlockSpeech();
-      const inp = document.getElementById('askInput'); const t = inp.value.trim();
-      inp.value = ''; if (t) handleAnswer(t);
-    });
-    document.getElementById('askCancel').addEventListener('click', () => { closeModal('modalAsk'); reply('Okay, cancelled. Nothing was recorded.', 'warn'); });
     if (!SR) showHint(FALLBACK_HINT);
 
-    // ========== COMMANDS ==========
-    const HELP = 'You can say: “spent 78 at the grocery store”, “add 100 to groceries”, “set fuel budget to 300”, “how much is left in fuel”, “how much is left overall”, “how much did I spend today” or “this week”, “how many days left”, “list my envelopes”, “what was my last transaction”, “undo”, or “create an envelope called hunting with 200”.';
+    // ========== CONVERSATION ==========
+    const HELP = 'I can record spending (“spent 78 at the grocery store”), add money (“add 100 to groceries”), move money (“move 50 from groceries to fuel”), fix the last entry (“that should have been fuel”, “that was 70 not 80”), set budgets (“set fuel budget to 300”), create, rename or delete envelopes, and answer questions like “how much is left in fuel”, “how much did I spend this week”, “how many days left”, or “list my envelopes”. Say “undo” to take back the last entry.';
+    const SHORT_HELP = 'I can record spending, add or move money, fix the last entry, set budgets, manage envelopes, and tell you what’s left.';
     function envNames() { return envelopes.map(e => e.name); }
+    function ctxEnv() { return envelopes.find(e => e.id === convo.lastEnvId) || null; }
+    function realEntry(h) { return h && (h.type === 'spend' || h.type === 'fill') && !h.kind; }
+    function lastEntry() {
+      const h = convo.lastEntryId && history.find(x => x.id === convo.lastEntryId);
+      if (realEntry(h)) return h;
+      for (let i = history.length - 1; i >= 0; i--) if (realEntry(history[i])) return history[i];
+      return null;
+    }
     function rangeFor(scope, now) {
       now = now || new Date();
       const sod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1706,80 +1860,243 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       const verb = h.type === 'spend' ? `Spent ${money(h.amount)} from` : `Added ${money(h.amount)} to`;
       return `${verb} ${h.envelopeName} on ${formatDate(h.ts)}${h.note ? ' (' + h.note + ')' : ''}.`;
     }
-
-    function runCommand(text, via) {
-      checkRollover();
-      if (via === 'button') document.getElementById('voiceHeard').textContent = '';
-      const r = BudgetParser.parse(text, envNames());
-      return executeParsed(r, via, text);
+    function envPhrase(env) { return env.balance >= 0 ? `${money(env.balance)} left in ${env.name}` : `${env.name} is over by ${money(-env.balance)}`; }
+    function totalPhrase() { const tot = totalAvailable(); return tot >= 0 ? `${money(tot)} left this pay period.` : `You're over by ${money(-tot)} this pay period.`; }
+    function orList(names) { return names.length < 2 ? (names[0] || '') : names.slice(0, -1).join(', ') + ' or ' + names[names.length - 1]; }
+    function envChips(cands, exclude) {
+      cands = (cands || []).filter(n => findEnv(n) && n !== exclude);
+      return cands.concat(sortedEnvelopes().map(e => e.name).filter(n => cands.indexOf(n) < 0 && n !== exclude))
+        .map(n => ({ label: n, say: n, primary: cands.indexOf(n) >= 0 }));
+    }
+    function ask(r, question, chips, text) {
+      convo.pending = { kind: 'need', r, question, chips: chips || [], text: text || r.raw || '', tries: 0 };
+      reply(question, 'warn', { chips });
+    }
+    function confirmAsk(question, run) {
+      convo.pending = { kind: 'confirm', question, run, chips: [{ label: 'Yes', say: 'yes', primary: true }, { label: 'No', say: 'no' }] };
+      reply(question, 'warn', { chips: convo.pending.chips });
+    }
+    function envFor(r, field) {
+      const name = r[field || 'envelope'];
+      if (name) return findEnv(name) || null;
+      if (r.ref && !(r.candidates || []).length && !field) return ctxEnv();
+      return null;
     }
 
-    function executeParsed(r, via, text) {
-      const env = r.envelope ? findEnv(r.envelope) : null;
-      const needsEnv = ['spend', 'fill', 'setBudget'].indexOf(r.intent) >= 0;
+    // One user turn. Always ends with a visible + spoken reply.
+    function runTurn(text, via, shown) {
+      text = String(text || '').trim();
+      if (!text) { reply('I didn’t get anything. Tap the mic or type what you’d like to do.', 'warn'); return; }
+      addMsg('user', shown || text);
+      const before = turnReplies;
+      try { checkRollover(); converse(text, via || 'typed'); }
+      catch (e) {
+        console.warn('Turn failed:', e);
+        if (turnReplies === before) reply('Sorry, something went wrong handling that. Try saying it another way, or say “help”.', 'warn');
+      }
+      if (turnReplies === before) reply(`I’m not sure what to do with “${text}”. ${SHORT_HELP} What would you like to do?`, 'warn', { chips: [{ label: 'What can you do?', say: 'what can you do' }] });
+    }
+    const runCommand = runTurn;
+
+    function converse(text, via) {
+      const r = BudgetParser.parse(text, envNames());
+      const p = convo.pending;
+      if (p) {
+        if (r.intent === 'cancel' || r.intent === 'no') {
+          convo.pending = null;
+          reply(p.kind === 'confirm' ? 'Okay, I won’t do that. Nothing was changed.' : 'Okay, cancelled. Nothing was changed.');
+          return;
+        }
+        if (r.intent === 'greet' || r.intent === 'thanks') { reply((r.intent === 'greet' ? 'Hi! ' : 'You’re welcome. ') + p.question, 'warn', { chips: p.chips }); return; }
+        if (p.kind === 'confirm') {
+          if (r.intent === 'yes') { convo.pending = null; p.run(); return; }
+          convo.pending = null; // anything else is a new request
+        } else {
+          if (r.intent === 'yes') { reply(p.question, 'warn', { chips: p.chips }); return; }
+          const isNew = r.explicit && r.intent !== 'unknown' && !(r.intent === p.r.intent && !BudgetParser.ACTIONS[r.intent]);
+          if (!isNew || (r.intent === p.r.intent && slotsFrom(p, text, r, true))) {
+            const filled = slotsFrom(p, text, r, false);
+            if (!filled) {
+              p.tries++;
+              if (p.tries >= 3) { convo.pending = null; reply('Let’s start over. ' + SHORT_HELP + ' What would you like to do?', 'warn'); return; }
+              reply('Sorry, I didn’t catch that. ' + p.question, 'warn', { chips: p.chips });
+              return;
+            }
+            convo.pending = null;
+            execute(p.r, via, p.text);
+            return;
+          }
+          convo.pending = null;
+        }
+      }
+      execute(r, via, text);
+    }
+
+    // Fill the missing pieces of a pending request from the latest answer. Returns true if anything was filled.
+    function slotsFrom(p, text, r, dryRun) {
+      const pr = dryRun ? JSON.parse(JSON.stringify(p.r)) : p.r;
+      const res = BudgetParser.resolveEnvelope(text, envNames());
+      let envName = res.envelope;
+      if (!envName && r.ref && ctxEnv()) envName = ctxEnv().name;
+      const amt = BudgetParser.extractAmount(res.text);
+      let filled = false;
+      if (pr.intent === 'transfer') {
+        const ts = BudgetParser.transferSlots(BudgetParser.norm(text), envNames());
+        if (ts.from && !pr.from) { pr.from = ts.from; filled = true; }
+        if (ts.to && !pr.to) { pr.to = ts.to; filled = true; }
+        if (!ts.from && !ts.to && envName) {
+          if (!pr.from && envName !== pr.to) { pr.from = envName; filled = true; }
+          else if (!pr.to && envName !== pr.from) { pr.to = envName; filled = true; }
+        }
+        if (amt != null && amt > 0 && pr.amount == null) { pr.amount = amt; filled = true; }
+      } else if (pr.intent === 'create') {
+        if (!pr.name) {
+          const nm = BudgetParser.cleanName(BudgetParser.norm(text).replace(/\$?\d+(\.\d+)?( dollars?| bucks?)?/g, '').replace(/(^| )(with|budget|of|a|for)( |$)/g, ' '));
+          if (nm) { pr.name = nm; filled = true; }
+        }
+        if (amt != null && pr.amount == null) { pr.amount = amt; filled = true; }
+      } else if (pr.intent === 'rename') {
+        if (!pr.envelope && envName) { pr.envelope = envName; filled = true; }
+        else if (pr.envelope && !pr.newName) { const nm = BudgetParser.cleanName(BudgetParser.norm(text)); if (nm) { pr.newName = nm; filled = true; } }
+      } else if (pr.intent === 'correct') {
+        const h = lastEntry();
+        let cands = res.candidates.filter(n => !h || n !== h.envelopeName);
+        if (!envName && cands.length === 1) envName = cands[0];
+        if (envName && (!h || envName !== h.envelopeName)) { pr.envelope = envName; filled = true; }
+        if (amt != null && amt > 0) { pr.amount = amt; filled = true; }
+      } else {
+        if (!pr.envelope && envName) { pr.envelope = envName; pr.candidates = []; filled = true; }
+        else if (!pr.envelope && res.candidates.length > 1 && !dryRun) { pr.candidates = res.candidates; p.chips = envChips(res.candidates); p.question = `Which one: ${orList(res.candidates)}?`; }
+        if (amt != null && amt > 0 && pr.amount == null && ['spend', 'fill', 'setBudget', 'afford'].indexOf(pr.intent) >= 0) { pr.amount = amt; filled = true; }
+      }
+      return filled;
+    }
+
+    function execute(r, via, text) {
+      const q = r.question ? 'Sure. ' : '';
       switch (r.intent) {
-        case 'cancel': reply('Okay, cancelled.', 'warn'); return r;
-        case 'help': reply(HELP); return r;
+        case 'greet': reply('Hi! What would you like to do? You can tell me what you spent, or ask what’s left.'); return;
+        case 'thanks': reply('You’re welcome.'); return;
+        case 'yes': case 'doThis': reply('Sure. What would you like me to do?', '', { chips: [{ label: 'What can you do?', say: 'what can you do' }] }); return;
+        case 'no': reply('Okay.'); return;
+        case 'cancel': reply('Okay. Nothing to cancel.'); return;
+        case 'help': reply(HELP); return;
         case 'undo': {
           const g = undoLast();
-          if (!g) { reply('There’s nothing to undo.', 'warn'); return r; }
+          if (!g) { reply('There’s nothing to undo.', 'warn'); return; }
           const e0 = envelopes.find(e => e.id === g[0].envelopeId);
+          if (e0) convo.lastEnvId = e0.id;
           const what = g.length > 1 ? `Undid the last ${g.length} entries.` : 'Undid: ' + describeEntry(g[0]).replace(/\.$/, '') + '.';
-          reply(what + (e0 ? '\n' + remainingLine(e0) : ''), 'ok', { speakText: (g.length > 1 ? `Undid ${g.length} entries. ` : 'Undone. ') + (e0 ? remainingLine(e0) : '') });
-          return r;
+          reply(what + (e0 ? '\n' + remainingLine(e0) : '\n' + totalPhrase()), 'ok', { speakText: (g.length > 1 ? `Undid ${g.length} entries. ` : 'Undone. ') + (e0 ? remainingLine(e0) : totalPhrase()) });
+          return;
         }
         case 'create': {
-          if (findEnv(r.name)) { reply(`You already have an envelope called ${r.name}.`, 'warn'); return r; }
+          if (!r.name) return ask(r, q + 'What should I call the new envelope?', [], text);
+          if (findEnv(r.name)) { const ex = findEnv(r.name); convo.lastEnvId = ex.id; reply(`You already have an envelope called ${ex.name}. ${envPhrase(ex)}.`, 'warn'); return; }
           const e = createEnvelope(r.name, r.amount || 0, null);
-          reply(`Created ${e.name}${r.amount ? ' with ' + money(r.amount) + ' per pay period' : ''}.\n` + remainingLine(e), 'ok', { undo: false });
-          return r;
+          convo.lastEnvId = e.id;
+          reply(`Created ${e.name}${r.amount ? ' with a ' + money(r.amount) + ' budget per pay period' : ''}.\n` + remainingLine(e) + (r.amount ? '' : `\nTo give it a budget, say “set ${e.name} budget to 200”.`), 'ok', { undo: !!r.amount });
+          return;
+        }
+        case 'rename': {
+          const env = envFor(r);
+          if (!env) return ask(r, q + 'Which envelope should I rename?', envChips(r.candidates), text);
+          if (env.name === MISC_NAME) { reply('Miscellaneous can’t be renamed, but you can create a new envelope.', 'warn'); return; }
+          if (!r.newName) { r.envelope = env.name; return ask(r, `What should I rename ${env.name} to?`, [], text); }
+          const other = findEnv(r.newName);
+          if (other && other.id !== env.id) { reply(`You already have an envelope called ${other.name}.`, 'warn'); return; }
+          const old = env.name; env.name = r.newName;
+          history.forEach(h => { if (h.envelopeId === env.id) h.envelopeName = env.name; });
+          convo.lastEnvId = env.id; save(); render();
+          reply(`Renamed ${old} to ${env.name}. ${envPhrase(env)}.`, 'ok');
+          return;
+        }
+        case 'deleteEnv': {
+          const env = envFor(r);
+          if (!env) return ask(r, q + 'Which envelope should I delete?', envChips(r.candidates, MISC_NAME), text);
+          if (env.name === MISC_NAME) { reply('The Miscellaneous envelope can’t be deleted.', 'warn'); return; }
+          confirmAsk(`Delete the ${env.name} envelope and its ${money(env.balance)} balance? Say yes or no.`, () => {
+            const still = envelopes.find(e => e.id === env.id);
+            if (!still) { reply('That envelope is already gone.', 'warn'); return; }
+            envelopes = envelopes.filter(e => e.id !== env.id);
+            if (convo.lastEnvId === env.id) convo.lastEnvId = null;
+            save(); render();
+            reply(`Deleted the ${env.name} envelope. ${totalPhrase()}`, 'ok');
+          });
+          return;
         }
         case 'daysLeft': {
           const p = curP(), d = Period.daysLeft(p), np = Period.nextPayday();
-          const t = (d === 1 ? 'Today is the last day of this pay period' : `${d} days left in this pay period`) + ` (${p.label.replace(/, \d+$/, '')}). Next payday is ${nice(np)}. ${money(totalAvailable())} left this pay period.`;
-          reply(t); return r;
+          reply((d === 1 ? 'Today is the last day of this pay period' : `${d} days left in this pay period`) + ` (${p.label.replace(/, \d+$/, '')}). Next payday is ${nice(np)}. ${money(totalAvailable())} left this pay period.`);
+          return;
         }
         case 'list': {
           const lines = sortedEnvelopes().map(e => `${e.name}: ${money(e.balance)}`);
           reply(lines.join('\n') + `\nTotal: ${money(totalAvailable())} left this pay period.`, '',
             { speakText: sortedEnvelopes().map(e => `${e.name}, ${money(e.balance)}`).join('. ') + `. ${money(totalAvailable())} left this pay period.` });
-          return r;
+          return;
         }
         case 'last': {
-          const h = lastUserEntry();
+          const h = lastEntry();
+          if (h) { convo.lastEntryId = h.id; convo.lastEnvId = h.envelopeId; }
           reply(h ? 'Last entry: ' + describeEntry(h) : 'No entries yet.', '', { undo: !!h });
-          return r;
+          return;
         }
         case 'spentQuery': {
-          if (!env && r.candidates.length > 1) return askWhich(r, text);
+          const env = envFor(r);
+          if (!env && (r.candidates || []).length > 1) return ask(r, `Which envelope: ${orList(r.candidates)}?`, envChips(r.candidates), text);
           const [from, to, words] = rangeFor(r.scope);
           const amt = spentBetween(from, to, env && env.id);
-          reply(env ? `You’ve spent ${money(amt)} on ${env.name} ${words}.` : `You’ve spent ${money(amt)} ${words}.` + (r.scope === 'period' || !r.scope ? ` ${money(totalAvailable())} left this pay period.` : ''));
-          return r;
+          if (env) convo.lastEnvId = env.id;
+          reply(env ? `You’ve spent ${money(amt)} on ${env.name} ${words}. ${envPhrase(env)}.` : `You’ve spent ${money(amt)} ${words}. ${totalPhrase()}`);
+          return;
         }
         case 'query': {
-          if (env) { reply(remainingLine(env)); return r; }
-          if (r.candidates.length > 1) return askWhich(r, text);
+          const env = envFor(r);
+          if (env) { convo.lastEnvId = env.id; reply(remainingLine(env)); return; }
+          if ((r.candidates || []).length > 1) return ask(r, `Which envelope: ${orList(r.candidates)}?`, envChips(r.candidates), text);
           const d = Period.daysLeft(curP());
           reply(`${money(totalAvailable())} left this pay period across ${envelopes.length} envelopes, with ${d} day${d === 1 ? '' : 's'} to go.`);
-          return r;
+          return;
         }
+        case 'afford': {
+          const env = envFor(r);
+          if (!env) return ask(r, `Which envelope would ${money(r.amount)} come out of?`, envChips(r.candidates), text);
+          convo.lastEnvId = env.id;
+          const after = round2(env.balance - r.amount);
+          const msg = after >= 0
+            ? `Yes. ${env.name} has ${money(env.balance)}, so ${money(r.amount)} would leave ${money(after)}. Want me to record it?`
+            : `Not from ${env.name}. It has ${money(env.balance)}, so ${money(r.amount)} would put it over by ${money(-after)}. ${totalPhrase()} Want me to record it anyway?`;
+          confirmAsk(msg, () => applyAction(Object.assign({}, r, { intent: 'spend' }), env, text, via));
+          return;
+        }
+        case 'transfer': return doTransferTurn(r, via, text);
+        case 'correct': return doCorrectTurn(r, via, text);
         case 'spend': case 'fill': case 'setBudget': {
-          if (r.amount == null || r.amount <= 0) {
-            reply(`I didn’t catch the amount. Try again, like “${r.intent === 'fill' ? 'add 100 to groceries' : r.intent === 'setBudget' ? 'set groceries budget to 300' : 'spent 78 at the grocery store'}”.`, 'warn');
-            return r;
+          const env = envFor(r);
+          const hasAmt = r.amount != null && r.amount > 0;
+          const cands = r.candidates || [];
+          if (!env || !hasAmt) {
+            if (env) r.envelope = env.name;
+            let question;
+            if (r.intent === 'spend') question = !hasAmt && !env ? q + 'How much did you spend, and on what?'
+              : !hasAmt ? `How much did you spend from ${env.name}?`
+              : (cands.length >= 2 && cands.length <= 4 ? `Which envelope? ${orList(cands)}?` : 'Which envelope?');
+            else if (r.intent === 'fill') question = !hasAmt && !env ? q + 'Which envelope, and how much should I add?'
+              : !hasAmt ? `How much should I add to ${env.name}?` : `Which envelope should I add ${money(r.amount)} to?`;
+            else question = !hasAmt && !env ? q + 'Which envelope, and what should its budget be per pay period?'
+              : !hasAmt ? `What should the ${env.name} budget be per pay period?` : `Which envelope gets a ${money(r.amount)} budget?`;
+            return ask(r, question, env ? [] : envChips(cands), text);
           }
-          if (!env) return askWhich(r, text);
           return applyAction(r, env, text, via);
         }
         default:
-          reply('Sorry, I didn’t understand “' + (text || '') + '”. ' + HELP, 'warn');
-          return r;
+          reply(`I’m not sure what you meant by “${text}”. ${SHORT_HELP} What would you like to do?`, 'warn', { chips: [{ label: 'What can you do?', say: 'what can you do' }] });
       }
-      void needsEnv;
     }
 
     function applyAction(r, env, text, via) {
+      convo.lastEnvId = env.id;
       if (r.intent === 'spend') {
         doSpend(env, r.amount, (text || '').slice(0, 60), via);
         reply(`Spent ${money(r.amount)} from ${env.name}.\n` + remainingLine(env), env.balance < 0 ? 'warn' : 'ok', { undo: true, speakText: remainingLine(env) });
@@ -1793,44 +2110,73 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
         reply(remainingLine(env));
       } else if (r.intent === 'spentQuery') {
         const [from, to, words] = rangeFor(r.scope);
-        reply(`You’ve spent ${money(spentBetween(from, to, env.id))} on ${env.name} ${words}.`);
+        reply(`You’ve spent ${money(spentBetween(from, to, env.id))} on ${env.name} ${words}. ${envPhrase(env)}.`);
+      } else if (r.intent === 'afford') {
+        execute(Object.assign({}, r, { envelope: env.name }), via, text);
+      } else if (r.intent === 'rename' || r.intent === 'deleteEnv') {
+        execute(Object.assign({}, r, { envelope: env.name }), via, text);
+      } else {
+        reply(remainingLine(env));
       }
-      return r;
     }
 
-    function askWhich(r, text) {
-      pendingAsk = { r, text };
-      const cands = r.candidates.filter(n => findEnv(n));
-      const ordered = cands.concat(sortedEnvelopes().map(e => e.name).filter(n => cands.indexOf(n) < 0));
-      const what = r.intent === 'spend' ? `Spending ${money(r.amount)}` : r.intent === 'fill' ? `Adding ${money(r.amount)}` :
-        r.intent === 'setBudget' ? `Setting a budget of ${money(r.amount)}` : 'Checking an envelope';
-      document.getElementById('askSub').textContent = `${what} — “${text}”`;
-      document.getElementById('askHint').textContent = SR && !srBroken ? 'Tap an envelope, or tap “Answer by voice” and say its name.' : 'Tap an envelope, or type/dictate its name below.';
-      const grid = document.getElementById('askChoices');
-      grid.innerHTML = ordered.map(n => `<button type="button" class="${cands.indexOf(n) >= 0 ? 'btn-primary' : 'btn-secondary'}" data-choice="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join('');
-      grid.querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => chooseEnvelope(b.getAttribute('data-choice'))));
-      openModal('modalAsk');
-      const q = cands.length >= 2 && cands.length <= 4 ? `Which envelope? ${cands.slice(0, -1).join(', ')} or ${cands[cands.length - 1]}?` : 'Which envelope?';
-      reply(q + (cands.length < 2 ? ' Tap one or say its name.' : ''), 'warn', { speakText: q });
-      return Object.assign({}, r, { asked: true });
+    function doTransferTurn(r, via, text) {
+      const q = r.question ? 'Sure. ' : '';
+      let from = r.from ? findEnv(r.from) : null, to = r.to ? findEnv(r.to) : null;
+      if (!from && r.single && !r.to) from = findEnv(r.single);
+      if (!from && r.ref && ctxEnv() && (!to || ctxEnv().id !== to.id)) from = ctxEnv();
+      const hasAmt = r.amount != null && r.amount > 0;
+      if (from) r.from = from.name; if (to) r.to = to.name;
+      if (from && to && from.id === to.id) { r.to = null; return ask(r, `That’s the same envelope. Which envelope should the money go to?`, envChips([], from.name), text); }
+      if (!from && !to && !hasAmt) return ask(r, q + 'How much should I move, and from which envelope to which? For example “50 from groceries to fuel”.', [], text);
+      if (!from) return ask(r, `Which envelope should I take ${hasAmt ? money(r.amount) : 'the money'} from?`, envChips(r.fromCandidates, to && to.name), text);
+      if (!to) return ask(r, `Which envelope should ${hasAmt ? money(r.amount) : 'the money'} go to?`, envChips(r.toCandidates, from.name), text);
+      if (!hasAmt) return ask(r, `How much should I move from ${from.name} to ${to.name}?`, [], text);
+      const groupId = uid(), amt = round2(r.amount);
+      from.balance = round2(from.balance - amt); to.balance = round2(to.balance + amt);
+      addEntry({ type: 'spend', kind: 'transfer', groupId, envelopeId: from.id, envelopeName: from.name, amount: amt, note: 'Moved to ' + to.name });
+      addEntry({ type: 'fill', kind: 'transfer', groupId, envelopeId: to.id, envelopeName: to.name, amount: amt, note: 'Moved from ' + from.name });
+      convo.lastEnvId = to.id;
+      save(); render();
+      reply(`Moved ${money(amt)} from ${from.name} to ${to.name}.\n${envPhrase(from)}. ${envPhrase(to)}.\n${totalPhrase()}`, 'ok', { undo: true });
     }
-    function chooseEnvelope(name) {
-      const p = pendingAsk; const env = findEnv(name);
-      if (!p || !env) return;
-      document.getElementById('modalAsk').classList.remove('open');
-      pendingAsk = null; stopListening();
-      applyAction(p.r, env, p.text, 'voice');
+
+    function doCorrectTurn(r, via, text) {
+      const h = lastEntry();
+      if (!h) { reply('There’s nothing to fix yet. No spending or added money has been recorded.', 'warn'); return; }
+      const cur = envelopes.find(e => e.id === h.envelopeId);
+      let target = null;
+      const cands = (r.candidates || []).filter(n => n !== h.envelopeName && n !== r.notEnvelope);
+      if (r.envelope && r.envelope !== h.envelopeName) target = findEnv(r.envelope);
+      else if (!r.envelope && cands.length === 1) target = findEnv(cands[0]);
+      if (r.envelope && r.envelope === h.envelopeName && !(r.amount > 0)) { reply(`That entry is already in ${h.envelopeName}. Which envelope should it go in instead?`, 'warn'); convo.pending = { kind: 'need', r: Object.assign({}, r, { envelope: null, candidates: [] }), question: 'Which envelope should it go in?', chips: envChips([], h.envelopeName), text, tries: 0 }; return; }
+      const newAmt = (r.amount != null && r.amount > 0 && round2(r.amount) !== h.amount) ? round2(r.amount) : null;
+      const what = `${h.type === 'spend' ? 'the' : 'the added'} ${money(h.amount)} ${h.type === 'spend' ? 'spend' : ''}`.replace(/\s+/g, ' ').trim();
+      if (!target && newAmt == null) {
+        if (r.wantsEnvelope || cands.length > 1) return ask(Object.assign({}, r, { envelope: null }), `Which envelope should ${what} from ${h.envelopeName} go in?`, envChips(cands, h.envelopeName), text);
+        return ask(r, `The last entry was: ${describeEntry(h)} What should it be? Say an envelope, like “fuel”, or an amount, like “70”.`, envChips([], h.envelopeName), text);
+      }
+      const oldEnvName = h.envelopeName, oldAmt = h.amount;
+      reverseEntry(h);
+      if (newAmt != null) h.amount = newAmt;
+      if (target) { h.envelopeId = target.id; h.envelopeName = target.name; }
+      const dest = envelopes.find(e => e.id === h.envelopeId);
+      if (dest) dest.balance = round2(dest.balance + (h.type === 'spend' ? -h.amount : h.amount));
+      h.note = ((h.note || '') + (target ? ` (moved from ${oldEnvName})` : '') + (newAmt != null ? ` (was ${money(oldAmt)})` : '')).trim().slice(0, 120);
+      h.edited = Date.now();
+      convo.lastEntryId = h.id; convo.lastEnvId = h.envelopeId;
+      save(); render();
+      let msg;
+      const kindWord = h.type === 'spend' ? 'spend' : 'deposit';
+      if (target && newAmt != null) msg = `Done. Moved it to ${target.name} and changed it from ${money(oldAmt)} to ${money(newAmt)}.`;
+      else if (target) msg = `Done. Moved that ${money(h.amount)} ${kindWord} from ${oldEnvName} to ${target.name}.`;
+      else msg = `Done. Changed that ${h.envelopeName} ${kindWord} from ${money(oldAmt)} to ${money(newAmt)}.`;
+      const parts = [];
+      if (target && cur) parts.push(envPhrase(cur) + '.');
+      if (dest) parts.push(envPhrase(dest) + '.');
+      reply(`${msg}\n${parts.join(' ')} ${totalPhrase()}`, 'ok');
     }
-    function handleAnswer(t) {
-      if (!pendingAsk) { runCommand(t, 'voice'); return; }
-      const n = BudgetParser.norm(t);
-      if (/^(cancel|never ?mind|stop|forget it|none|nothing)( |$)/.test(n)) { closeModal('modalAsk'); reply('Okay, cancelled. Nothing was recorded.', 'warn'); return; }
-      const res = BudgetParser.resolveEnvelope(t, envNames());
-      document.getElementById('voiceHeard').textContent = '“' + t + '”';
-      if (res.envelope) { chooseEnvelope(res.envelope); return; }
-      const c = res.candidates.length >= 2 ? `${res.candidates.slice(0, -1).join(', ')} or ${res.candidates[res.candidates.length - 1]}?` : '';
-      reply(`Sorry, which envelope? ${c}`.trim(), 'warn');
-    }
+
 
     // ========== SETTINGS ==========
     document.getElementById('btnSettings').addEventListener('click', () => {
@@ -1932,19 +2278,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       // Same token = already done. No token: ignore an identical command repeated within 10 minutes (page reload / tab restore).
       if (seen.some(x => x && x.id === id && (tok || now - x.ts < 600000))) { toast('Already recorded: “' + say.trim() + '”'); return; }
       seen.push({ id, ts: now }); storeSet(key, JSON.stringify(seen.slice(-30)));
-      document.getElementById('voiceHeard').textContent = '“' + say.trim() + '” (from Siri)';
-      runCommand(say.trim(), 'siri');
+      runTurn(say.trim(), 'siri', say.trim() + ' (from Siri)');
       // iPhone browsers block sound until you tap, so offer a one-tap replay.
-      const box = document.getElementById('voiceReply');
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn-secondary btn-small'; b.textContent = '🔊 Hear it';
-      b.style.marginTop = '10px';
-      const txt = box.innerText.replace(/↶ Undo/g, '').trim();
-      b.addEventListener('click', () => { unlockSpeech(); speak(txt); });
-      box.appendChild(b);
+      const txt = lastReplyText;
+      if (lastBotEl) {
+        let c = lastBotEl.querySelector('.chips');
+        if (!c) { c = document.createElement('div'); c.className = 'chips'; lastBotEl.appendChild(c); }
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'chip primary'; b.textContent = '🔊 Hear it';
+        b.addEventListener('click', () => { unlockSpeech(); speak(txt); });
+        c.insertBefore(b, c.firstChild);
+      }
+      try { document.querySelector('.voice-card').scrollIntoView({ block: 'start' }); } catch (e) {}
     })();
 
     // Test hook (harmless in normal use)
-    window.__budget = { runCommand, checkRollover, state: () => ({ envelopes, history, settings, currentPeriod, periods }), totalAvailable, totalBudget, spentThisPeriod, prepareImport, chooseEnvelope, handleAnswer, load, render, setViewKey: k => { viewKey = k; } };
+    window.__budget = { runCommand, checkRollover, state: () => ({ envelopes, history, settings, currentPeriod, periods }), totalAvailable, totalBudget, spentThisPeriod, prepareImport, runTurn, convo, lastReply: () => lastReplyText, load, render, setViewKey: k => { viewKey = k; } };
 
   </script>
 </body>
