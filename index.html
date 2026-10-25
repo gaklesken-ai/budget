@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Budget" />
+  <meta name="application-name" content="Envelope Budget" />
+  <meta name="theme-color" content="#0f1419" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAADl0lEQVR42u3dsU5UQRhH8bvEkoRCYkILCTTEN7Ay1hS8hIWh8ynoCIUvYUFtrHgDQ6MJtiYmdvZYbEKMWVdkZ+bO983vFITKvdl7OP+5C4mLnd29CVjFlrcA5AA5QA6QA+QAOUAOkAPkADkAcoAcIAfIAXKAHCAHyAFygBwAOUAOkAPkADlADpAD5AA5QA6AHCAHyAFygBwgB8gBcoAcIAfIAZAD5AA5QA6QA+QAORCdJw1e4/js1htdg5uLg6r//qLef+PFieiWbDEjAZXe7fLloEWahBQrx+cvX5nRSUKW96IXOZZXU+qa0Mm9KPC08uzk0/33798spml68fanm9Se6/PtP+7L96vnM585VkrKj3nNWHJ0uD+nHOvzRZG5tCjix6ZnjvWvvf660bMZZQ6kR4f7p5d3/OjKjNPLuw3NKHPmuH98XZ5GTczswbj/Wd3wY4+Sv1tZXtPfFLk+3+ZHg2AUfKHyH5+vnxgrs6EWzcyYKv1WVkJCB6NiOSQkejBayPHP6+ZHwbNnDar/sY+JiTUl7cphYsJNSdNySEi4YLQuh4QECsZscjil9nn2nHlWTEyIKZm5HCam5ymZvxwS0nMwuijH4AnpNhi9lGPYhHSuRUflGCoh/QejUznSP+j29rAaY1ZGmJgowei3HCknJtCU9F6OZAmJqEXv5UiQkKDBiCRH0FNqrLNnvFmJOzGhgxGsHIEmJvqUhCxHiISk0SJkObpNSKZgBC5HhwnJp0XscnSSkJTByCPHjA+6CR5W087KvBOTOBipytF4YnJPScJyNEvIIFokLEfVhIwTjORyFD+lpj97DjErNSZmtGDkL0eRiRlwSkYpx4YJGVmLUcrxiIQMHoyxyvFfCaHFiOV4YEKYMbQcj7jTA5ox3Kw8fGIG12Locjzw3o9sxtDlWJ+QwbVQjhWK/P4V5FjtB8gBcoAcIAfIAXKAHCAHyAFygBwAOUAOkAPkADlADpAD5AA5QA6AHGglx83FgfexQza/L8oBcmAuOSxLvk0pWQ5+JDPDrKCVHOKRKRvly8GPNGZM07TY2d2rcZXHZ7duVVwt6p45JCS6GRXLUbUi316+jngL9z6+i/UT2EKO4jy9ehVRjh8nH8Z9WoFHWZAD5PAWgBwgB8iBBoT8nAPKAXKAHCAHyAFygBwAOUAOkAPkADlADpAD5AA5QA6AHCAHyAFygBwgB8gBcoAcIAdADpAD5EBZfgHvDuBnXmGk8gAAAABJRU5ErkJggg==" />
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAADl0lEQVR42u3dsU5UQRhH8bvEkoRCYkILCTTEN7Ay1hS8hIWh8ynoCIUvYUFtrHgDQ6MJtiYmdvZYbEKMWVdkZ+bO983vFITKvdl7OP+5C4mLnd29CVjFlrcA5AA5QA6QA+QAOUAOkAPkADkAcoAcIAfIAXKAHCAHyAFygBwAOUAOkAPkADlADpAD5AA5QA6AHCAHyAFygBwgB8gBcoAcIAfIAZAD5AA5QA6QA+QAORCdJw1e4/js1htdg5uLg6r//qLef+PFieiWbDEjAZXe7fLloEWahBQrx+cvX5nRSUKW96IXOZZXU+qa0Mm9KPC08uzk0/33798spml68fanm9Se6/PtP+7L96vnM585VkrKj3nNWHJ0uD+nHOvzRZG5tCjix6ZnjvWvvf660bMZZQ6kR4f7p5d3/OjKjNPLuw3NKHPmuH98XZ5GTczswbj/Wd3wY4+Sv1tZXtPfFLk+3+ZHg2AUfKHyH5+vnxgrs6EWzcyYKv1WVkJCB6NiOSQkejBayPHP6+ZHwbNnDar/sY+JiTUl7cphYsJNSdNySEi4YLQuh4QECsZscjil9nn2nHlWTEyIKZm5HCam5ymZvxwS0nMwuijH4AnpNhi9lGPYhHSuRUflGCoh/QejUznSP+j29rAaY1ZGmJgowei3HCknJtCU9F6OZAmJqEXv5UiQkKDBiCRH0FNqrLNnvFmJOzGhgxGsHIEmJvqUhCxHiISk0SJkObpNSKZgBC5HhwnJp0XscnSSkJTByCPHjA+6CR5W087KvBOTOBipytF4YnJPScJyNEvIIFokLEfVhIwTjORyFD+lpj97DjErNSZmtGDkL0eRiRlwSkYpx4YJGVmLUcrxiIQMHoyxyvFfCaHFiOV4YEKYMbQcj7jTA5ox3Kw8fGIG12Locjzw3o9sxtDlWJ+QwbVQjhWK/P4V5FjtB8gBcoAcIAfIAXKAHCAHyAFygBwAOUAOkAPkADlADpAD5AA5QA6AHGglx83FgfexQza/L8oBcmAuOSxLvk0pWQ5+JDPDrKCVHOKRKRvly8GPNGZM07TY2d2rcZXHZ7duVVwt6p45JCS6GRXLUbUi316+jngL9z6+i/UT2EKO4jy9ehVRjh8nH8Z9WoFHWZAD5PAWgBwgB8iBBoT8nAPKAXKAHCAHyAFygBwAOUAOkAPkADlADpAD5AA5QA6AHCAHyAFygBwgB8gBcoAcIAdADpAD5EBZfgHvDuBnXmGk8gAAAABJRU5ErkJggg==" />
+
+  <title>Envelope Budget</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3a4f;
+      --text: #e8eef7;
+      --text-muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+      line-height: 1.4;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-top: 8px;
+    }
+
+    header h1 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .summary {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .summary-card {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .summary-card .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .summary-card .value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .summary-card .value.positive { color: var(--green); }
+    .summary-card .value.negative { color: var(--red); }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 10px 14px;
+      font-size: 0.9rem;
+    }
+
+    .btn-small {
+      padding: 10px 12px;
+      font-size: 0.9rem;
+    }
+
+    .envelopes {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .envelope {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .envelope.low { border-color: var(--orange); }
+    .envelope.negative {
+      border-color: var(--red);
+      background: #1f1515;
+    }
+
+    .envelope-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .envelope-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .envelope-balance {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .envelope-balance.positive { color: var(--green); }
+    .envelope-balance.zero { color: var(--text-muted); }
+    .envelope-balance.negative { color: var(--red); }
+
+    .envelope-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+    }
+
+    .empty-state p { margin-bottom: 16px; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 100;
+      padding: 12px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px 18px 14px 14px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 22px 18px;
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal h2 {
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 14px;
+      color: var(--text);
+      font-size: 1.05rem;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .modal-actions button { flex: 1; }
+
+    /* History */
+    .history-section { margin-top: 8px; }
+
+    .history-section h3 {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+
+    .history-item .left { flex: 1; min-width: 0; }
+
+    .history-item .type { font-weight: 600; }
+    .history-item .type.spend { color: var(--red); }
+    .history-item .type.fill { color: var(--green); }
+
+    .history-item .meta {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+
+    .history-item .amount { font-weight: 700; white-space: nowrap; }
+    .history-item .amount.spend { color: var(--red); }
+    .history-item .amount.fill { color: var(--green); }
+
+    .clear-history {
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .fill-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .fill-row .name {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .fill-row input {
+      width: 110px;
+      text-align: right;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 28px;
+      padding-bottom: 24px;
+    }
+
+    .hint-text {
+      display: none;
+      color: var(--red);
+      font-size: 0.85rem;
+      margin-top: 12px;
+      text-align: center;
+    }
+    /* ===== Added: pay period, voice, progress, backup ===== */
+    body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+    header { position: relative; }
+    .gear { position: absolute; right: 0; top: 4px; background: transparent; color: var(--text-muted); font-size: 1.35rem; padding: 6px 10px; }
+    .period-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 18px; }
+    .period-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .period-nav button { padding: 10px 16px; font-size: 1.1rem; min-width: 48px; }
+    .period-title { text-align: center; flex: 1; }
+    .period-title .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .period-title .name { font-weight: 700; font-size: 1.05rem; }
+    .period-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; text-align: center; }
+    .period-stats .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .period-stats .value { font-weight: 700; font-size: 1.05rem; margin-top: 2px; }
+    .period-sub { color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-top: 8px; }
+    .period-breakdown { margin-top: 10px; font-size: 0.88rem; }
+    .period-breakdown div { display: flex; justify-content: space-between; padding: 4px 2px; border-top: 1px solid var(--border); }
+    .budget-btn { width: 100%; margin-top: 10px; }
+
+    .voice-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 18px; }
+    .voice-top { display: flex; align-items: center; gap: 14px; }
+    .mic { width: 84px; height: 84px; border-radius: 50%; padding: 0; flex-shrink: 0; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
+    .mic svg { width: 38px; height: 38px; }
+    .mic.listening { background: var(--red); animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.6); } 70% { box-shadow: 0 0 0 18px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+    .voice-title { font-weight: 700; font-size: 1.1rem; }
+    .voice-sub { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
+    .cmd-form { display: flex; gap: 8px; margin-top: 14px; }
+    .cmd-form input { flex: 1; min-width: 0; }
+    .cmd-form button { padding: 12px 18px; }
+    .voice-hint { color: var(--orange); font-size: 0.8rem; margin-top: 8px; display: none; }
+    .voice-heard { color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; min-height: 0; font-style: italic; }
+    .voice-reply { margin-top: 8px; font-size: 1.05rem; font-weight: 600; display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; white-space: pre-line; }
+    .voice-reply.ok { border-color: var(--green); }
+    .voice-reply.warn { border-color: var(--orange); }
+    .voice-reply .reply-actions { margin-top: 10px; display: flex; gap: 8px; }
+
+    .envelope { flex-wrap: wrap; }
+    .envelope-meta { color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; }
+    .bar { width: 100%; height: 8px; border-radius: 6px; background: var(--bg); overflow: hidden; flex-basis: 100%; }
+    .bar > span { display: block; height: 100%; background: var(--green); border-radius: 6px; transition: width 0.3s; }
+    .bar > span.mid { background: var(--orange); }
+    .bar > span.over { background: var(--red); }
+
+    .history-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .history-head h3 { margin-bottom: 0 !important; }
+    .history-item .del { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 6px 10px; font-size: 0.85rem; margin-left: 8px; }
+    .history-item .del.confirm { color: var(--red); border-color: var(--red); }
+    .history-item .right { display: flex; align-items: center; }
+
+    .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+    .choice-grid button { padding: 16px 10px; }
+    .ask-sub { color: var(--text-muted); font-size: 0.95rem; }
+    .backup { margin-top: 26px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+    .backup .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .backup p { color: var(--text-muted); font-size: 0.8rem; margin-top: 10px; text-align: center; }
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .toggle-row input { width: 26px; height: 26px; flex-shrink: 0; }
+    .toggle-row small { display: block; color: var(--text-muted); font-size: 0.8rem; }
+    textarea { width: 100%; min-height: 160px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 0.8rem; }
+    .muted-note { color: var(--text-muted); font-size: 0.8rem; margin-top: 6px; }
+    .toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 10px; z-index: 200; display: none; font-size: 0.9rem; max-width: 90%; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Envelope Budget</h1>
+      <p>Allocate → Spend → Track</p>
+      <button class="gear" type="button" id="btnSettings" aria-label="Settings">⚙︎</button>
+    </header>
+
+    <div class="summary">
+      <div class="summary-card">
+        <div class="label">Total Available</div>
+        <div class="value positive" id="totalAvailable">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Envelopes</div>
+        <div class="value" id="envelopeCount">0</div>
+      </div>
+    </div>
+
+    <div class="period-card" id="periodCard">
+      <div class="period-nav">
+        <button class="btn-secondary" type="button" id="prevPeriod" aria-label="Previous pay period">‹</button>
+        <div class="period-title">
+          <div class="label" id="periodLabel">This Pay Period</div>
+          <div class="name" id="periodName">—</div>
+        </div>
+        <button class="btn-secondary" type="button" id="nextPeriod" aria-label="Next pay period">›</button>
+      </div>
+      <div class="period-stats">
+        <div><div class="label">Budget</div><div class="value" id="statBudget">$0.00</div></div>
+        <div><div class="label">Spent</div><div class="value" id="statSpent">$0.00</div></div>
+        <div><div class="label" id="statLeftLabel">Days Left</div><div class="value" id="statLeft">0</div></div>
+      </div>
+      <div class="period-sub" id="periodSub"></div>
+      <div class="period-breakdown" id="periodBreakdown"></div>
+      <button class="btn-secondary btn-small budget-btn" type="button" id="btnBudgets">Set Pay-Period Budgets</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="btnSpend">− Spend</button>
+      <button class="btn-secondary" id="btnFill">+ Add Money</button>
+      <button class="btn-secondary" id="btnNew" style="grid-column: 1 / -1;">+ New Envelope</button>
+    </div>
+
+    <div class="voice-card">
+      <div class="voice-top">
+        <button class="mic" type="button" id="btnMic" aria-label="Tap and speak">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+        </button>
+        <div>
+          <div class="voice-title" id="micTitle">Tap &amp; speak</div>
+          <div class="voice-sub">“spent 78 at the grocery store” · “how much is left in fuel?” · “what can you do?”</div>
+        </div>
+      </div>
+      <form class="cmd-form" id="cmdForm" autocomplete="off">
+        <input type="text" id="cmdInput" placeholder="Or type / dictate here…" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <button class="btn-primary" type="submit">Go</button>
+      </form>
+      <div class="voice-hint" id="voiceHint"></div>
+      <div class="voice-heard" id="voiceHeard"></div>
+      <div class="voice-reply" id="voiceReply"></div>
+    </div>
+
+    <div class="envelopes" id="envelopesList"></div>
+
+    <div class="history-section">
+      <div class="history-head">
+        <h3 id="historyTitle">Recent Activity</h3>
+        <button class="btn-secondary btn-small" type="button" id="btnUndo">↶ Undo Last</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+      <button class="btn-secondary clear-history" id="btnClearHistory" style="display:none;">Clear History</button>
+      <p class="hint-text" id="clearHistoryHint"></p>
+    </div>
+
+    <div class="backup">
+      <div class="row">
+        <button class="btn-secondary btn-small" type="button" id="btnExport">⬇ Export Backup</button>
+        <button class="btn-secondary btn-small" type="button" id="btnImport">⬆ Import Backup</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json,.json,text/plain" style="display:none" />
+      <p>iPhone browsers can clear saved site data (Safari after about 7 days unused). Export a backup at least every pay period and save it to Files.</p>
+    </div>
+
+    <p class="footer-note">Data stays on this device only • No account needed</p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- New Envelope Modal -->
+  <div class="modal-overlay" id="modalNew">
+    <div class="modal">
+      <h2>New Envelope</h2>
+      <div class="form-group">
+        <label for="newName">Name</label>
+        <input type="text" id="newName" placeholder="e.g. Groceries, Gas, Fun" maxlength="40" />
+      </div>
+      <div class="form-group">
+        <label for="newBudget">Budget per pay period (optional)</label>
+        <input type="number" id="newBudget" placeholder="0.00" step="0.01" min="0" inputmode="decimal" />
+      </div>
+      <div class="form-group">
+        <label for="newAmount">Starting amount (optional)</label>
+        <input type="number" id="newAmount" placeholder="Defaults to the budget" step="0.01" min="0" inputmode="decimal" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" id="cancelNew">Cancel</button>
+        <button class="btn-primary" type="button" id="confirmNew">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spend Modal -->
+  <div class="modal-overlay" id="modalSpend">
+    <div class="modal">
+      <h2>Record Spend</h2>
+      <div class="form-group">
+        <label for="spendEnvelope">Envelope</label>
+        <select id="spendEnvelope"></select>
+      </div>
+      <div class="form-group">
+        <label for="spendAmount">Amount</label>
+        <input type="number" id="spendAmount" placeholder="0.00" step="0.01" min="0.01" inputmode="decimal" />
+      </div>
+      <div class="form-group">
+        <label for="spendNote">Note (optional)</label>
+        <input type="text" id="spendNote" placeholder="Coffee, groceries, etc." maxlength="60" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" id="cancelSpend">Cancel</button>
+        <button class="btn-primary" type="button" id="confirmSpend">Subtract</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fill / Add Money Modal -->
+  <div class="modal-overlay" id="modalFill">
+    <div class="modal">
+      <h2>Add Money to Envelopes</h2>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:16px;">
+        Enter how much to add to each envelope.
+      </p>
+      <div id="fillRows"></div>
+      <div class="form-group" style="margin-top:12px;">
+        <label for="fillNote">Note (optional)</label>
+        <input type="text" id="fillNote" placeholder="August paycheck, etc." maxlength="60" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" id="cancelFill">Cancel</button>
+        <button class="btn-primary" type="button" id="confirmFill">Add Money</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budgets Modal -->
+  <div class="modal-overlay" id="modalBudgets">
+    <div class="modal">
+      <h2>Budget per Pay Period</h2>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:16px;">
+        Pay periods are the 1st–14th and the 15th–end of each month. Each envelope gets this amount at the start of every period. Changing a budget now adds or removes the difference from this period's balance.
+      </p>
+      <div id="budgetRows"></div>
+      <div class="period-sub" id="budgetTotal"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" id="cancelBudgets">Cancel</button>
+        <button class="btn-primary" type="button" id="confirmBudgets">Save Budgets</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Envelope Modal -->
+  <div class="modal-overlay" id="modalEdit">
+    <div class="modal">
+      <h2>Edit Envelope</h2>
+      <div class="form-group">
+        <label for="editName">Name</label>
+        <input type="text" id="editName" maxlength="40" />
+      </div>
+      <div class="form-group">
+        <label for="editBudget">Budget per pay period</label>
+        <input type="number" id="editBudget" placeholder="0.00" step="0.01" min="0" inputmode="decimal" />
+        <div class="muted-note">Changing this adds/removes the difference from the balance below.</div>
+      </div>
+      <div class="form-group">
+        <label for="editBalance">Balance</label>
+        <input type="number" id="editBalance" placeholder="0.00" step="0.01" inputmode="decimal" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" type="button" id="confirmEdit" style="flex: 1 1 100%;">Save Changes</button>
+        <button class="btn-secondary" type="button" id="cancelEdit" style="flex: 1;">Cancel</button>
+        <button class="btn-danger" type="button" id="btnDeleteEnv" style="flex: 1;">Delete Envelope</button>
+      </div>
+      <p class="hint-text" id="deleteHint"></p>
+    </div>
+  </div>
+
+  <!-- Which envelope? Modal -->
+  <div class="modal-overlay" id="modalAsk">
+    <div class="modal">
+      <h2>Which envelope?</h2>
+      <p class="ask-sub" id="askSub"></p>
+      <div class="choice-grid" id="askChoices"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" type="button" id="askMic">🎤 Answer by voice</button>
+        <button class="btn-secondary" type="button" id="askCancel">Cancel</button>
+      </div>
+      <form class="cmd-form" id="askForm" autocomplete="off">
+        <input type="text" id="askInput" placeholder="Or type / dictate the envelope…" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <button class="btn-secondary" type="submit">OK</button>
+      </form>
+      <p class="muted-note" id="askHint"></p>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="modalSettings">
+    <div class="modal">
+      <h2>Settings</h2>
+      <label class="toggle-row"><span>Carry leftover to next pay period<small>On: unspent money (or overspending) carries forward and the new budget is added. Off: each envelope resets to its budget.</small></span><input type="checkbox" id="setCarry" /></label>
+      <label class="toggle-row"><span>Spoken replies<small>Read answers out loud after each voice or typed command.</small></span><input type="checkbox" id="setVoice" /></label>
+      <div class="muted-note" id="settingsInfo" style="margin-top:12px;"></div>
+      <button class="btn-secondary btn-small" type="button" id="btnBackupText" style="width:100%;margin-top:12px;">Show backup as text (copy &amp; paste)</button>
+      <div class="modal-actions">
+        <button class="btn-primary" type="button" id="closeSettings">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import confirm / backup text Modal -->
+  <div class="modal-overlay" id="modalImport">
+    <div class="modal">
+      <h2 id="importTitle">Import Backup</h2>
+      <p class="ask-sub" id="importSub"></p>
+      <textarea id="backupText" style="display:none" readonly></textarea>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" id="cancelImport">Cancel</button>
+        <button class="btn-primary" type="button" id="confirmImport">Replace My Data</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+/* ===== BudgetParser: pure text -> intent parser (no DOM). Tested by tests/parser.test.js ===== */
+var BudgetParser = (function () {
+  // Each group: names = envelope names it can map onto; strong / weak = keywords (normalized).
+  var GROUPS = [
+    { key: 'Groceries', names: ['groceries', 'grocery', 'food', 'groceries and household'],
+      strong: ['grocery', 'groceries', 'grocery store', 'superstore', 'real canadian superstore', 'safeway', 'sobeys',
+        'save on foods', 'save on', 'no frills', 'freshco', 'co op food', 'coop food', 'iga', 'costco food', 'costco groceries',
+        'walmart groceries', 'food', 'produce', 'milk', 'bread', 'meat', 'butcher', 'supermarket', 'extra foods', 'giant tiger'],
+      weak: ['costco', 'walmart', 'co op', 'coop'] },
+    { key: 'Fuel', names: ['fuel', 'gas', 'gasoline', 'diesel', 'fuel and gas'],
+      strong: ['gas', 'gas station', 'fuel', 'diesel', 'gasoline', 'fill up', 'filled up', 'fueled up', 'esso', 'shell',
+        'petro canada', 'petro can', 'petro', 'husky', 'co op gas', 'coop gas', 'co op cardlock', 'cardlock', 'costco gas', '7 eleven',
+        'seven eleven', 'chevron', 'mobil', 'fas gas', 'centex', 'domo', 'gas bar', 'pump', 'canadian tire gas', 'ultramar', 'pioneer'],
+      weak: ['canadian tire'] },
+    { key: 'Eating Out', names: ['eating out', 'restaurants', 'restaurant', 'dining', 'dining out', 'takeout', 'fast food', 'eat out'],
+      strong: ['restaurant', 'tim hortons', 'tim hortons', 'tims', 'timmies', 'mcdonalds', 'a and w', 'wendys', 'burger king', 'subway',
+        'starbucks', 'coffee', 'lunch', 'dinner', 'breakfast', 'takeout', 'take out', 'pizza', 'dominos', 'boston pizza', 'kfc',
+        'dairy queen', 'dq', 'pub', 'skip the dishes', 'skip', 'doordash', 'door dash', 'uber eats', 'fast food', 'dennys',
+        'earls', 'montanas', 'cactus club', 'chinese food', 'sushi', 'diner', 'cafe', 'drive thru', 'drive through', 'taco bell',
+        'popeyes', 'pizza hut', 'little caesars', 'arbys', 'harveys', 'mr mikes', 'browns socialhouse', 'smittys', 'humpty'],
+      weak: ['bar'] },
+    { key: 'Entertainment', names: ['entertainment', 'fun', 'recreation'],
+      strong: ['movie', 'movies', 'cinema', 'theatre', 'theater', 'netflix', 'spotify', 'disney plus', 'disney', 'crave', 'concert',
+        'video game', 'game', 'games', 'bowling', 'golf', 'steam', 'xbox', 'playstation', 'nintendo', 'tickets', 'ticket', 'bingo',
+        'casino', 'cineplex', 'landmark cinemas', 'entertainment', 'show', 'rodeo', 'hockey game'],
+      weak: [] },
+    { key: 'Clothes', names: ['clothes', 'clothing', 'apparel'],
+      strong: ['clothes', 'clothing', 'shirt', 'shirts', 'pants', 'jeans', 'boots', 'shoes', 'jacket', 'coat', 'socks', 'gloves',
+        'marks', 'marks work wearhouse', 'winners', 'old navy', 'hoodie', 'underwear', 'hat', 'work boots', 'sport chek', 'reitmans', 'sketchers', 'skechers'],
+      weak: [] },
+    { key: 'Miscellaneous', names: ['miscellaneous', 'misc', 'other', 'everything else'],
+      strong: ['misc', 'miscellaneous', 'other', 'random', 'stuff', 'dollarama', 'dollar store'],
+      weak: ['amazon', 'canadian tire', 'walmart', 'costco'] },
+    // Groups below only apply if George creates a matching envelope.
+    { key: 'Vehicle', names: ['vehicle', 'truck', 'car', 'auto', 'car repairs', 'truck repairs', 'vehicle maintenance'],
+      strong: ['oil change', 'tires', 'tire', 'mechanic', 'car wash', 'truck wash', 'repair', 'repairs', 'insurance', 'registration', 'kal tire', 'fountain tire', 'napa', 'parts'],
+      weak: ['canadian tire'] },
+    { key: 'Hunting', names: ['hunting', 'hunting and fishing', 'outdoors', 'fishing'],
+      strong: ['ammo', 'ammunition', 'cabelas', 'bass pro', 'tag', 'tags', 'licence', 'license', 'hunting', 'fishing', 'scope', 'rifle', 'decoy', 'decoys', 'bait', 'sportsmans warehouse'],
+      weak: [] },
+    { key: 'Household', names: ['household', 'house', 'home', 'household supplies'],
+      strong: ['household', 'cleaning', 'toilet paper', 'paper towel', 'detergent', 'home depot', 'rona', 'home hardware', 'lowes', 'ikea'],
+      weak: [] },
+    { key: 'Bills', names: ['bills', 'utilities', 'phone', 'internet', 'power'],
+      strong: ['bill', 'bills', 'phone bill', 'internet', 'power bill', 'electricity', 'utilities', 'telus', 'rogers', 'shaw', 'bell', 'atco', 'epcor', 'fortis', 'enmax'],
+      weak: [] },
+    { key: 'Health', names: ['health', 'medical', 'pharmacy', 'drugs', 'prescriptions'],
+      strong: ['pharmacy', 'shoppers', 'shoppers drug mart', 'rexall', 'london drugs', 'prescription', 'medicine', 'dentist', 'doctor', 'chiropractor', 'physio'],
+      weak: [] },
+    { key: 'Pets', names: ['pets', 'pet', 'dog', 'cat', 'pet food'],
+      strong: ['vet', 'dog food', 'cat food', 'pet food', 'petsmart', 'pet valu', 'kibble', 'dog', 'cat'],
+      weak: [] },
+    { key: 'Alcohol', names: ['alcohol', 'liquor', 'beer', 'booze'],
+      strong: ['liquor', 'liquor store', 'beer', 'wine', 'booze', 'liquor depot', 'wine and beyond', 'coors', 'rum', 'whisky', 'whiskey', 'vodka'],
+      weak: ['bar'] },
+    { key: 'Gifts', names: ['gifts', 'gift', 'presents', 'christmas', 'birthdays'],
+      strong: ['gift', 'gifts', 'present', 'presents', 'birthday', 'christmas'],
+      weak: [] }
+  ];
+
+  var STOP = { the: 1, a: 1, an: 1, at: 1, on: 1, in: 1, to: 1, for: 1, from: 1, of: 1, and: 1, i: 1, my: 1, me: 1, it: 1, is: 1,
+    spent: 1, spend: 1, paid: 1, pay: 1, bought: 1, buy: 1, put: 1, add: 1, added: 1, dollars: 1, dollar: 1, bucks: 1, cents: 1,
+    just: 1, some: 1, this: 1, that: 1, with: 1, into: 1, envelope: 1, store: 1, how: 1, much: 1, left: 1, there: 1, have: 1,
+    what: 1, whats: 1, was: 1, got: 1, get: 1, today: 1, yesterday: 1, budget: 1, set: 1, make: 1, month: 1, about: 1, over: 1,
+    under: 1, our: 1, out: 1, up: 1, had: 1, did: 1, do: 1, does: 1, any: 1, all: 1, by: 1, be: 1, ok: 1, okay: 1, um: 1, uh: 1 };
+
+  var SMALL = { zero: 0, oh: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+    eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
+  var TENS = { twenty: 20, thirty: 30, forty: 40, fourty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+
+  function norm(s) {
+    var t = String(s || '').toLowerCase();
+    t = t.replace(/[\u2019'`]/g, '').replace(/&/g, ' and ').replace(/\u2212/g, '-');
+    t = t.replace(/(\d),(\d{3})/g, '$1$2').replace(/(\d),(\d{3})/g, '$1$2');
+    t = t.replace(/(\d)\.(\d)/g, '$1\u0001$2');            // protect decimal points
+    t = t.replace(/[^a-z0-9$\u0001 ]+/g, ' ');
+    t = t.replace(/\u0001/g, '.');
+    t = t.replace(/\$\s+/g, '$');
+    return t.replace(/\s+/g, ' ').trim();
+  }
+
+  function stem(w) {
+    if (w.length > 4 && /ies$/.test(w)) return w.slice(0, -3) + 'y';
+    if (w.length > 4 && /s$/.test(w) && !/ss$/.test(w)) return w.slice(0, -1);
+    return w;
+  }
+  function stemPhrase(p) { return norm(p).split(' ').map(stem).join(' '); }
+
+  function lev(a, b) {
+    if (a === b) return 0;
+    var m = a.length, n = b.length, i, j, prev = [], cur = [];
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++) {
+      cur = [i];
+      for (j = 1; j <= n; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      }
+      prev = cur;
+    }
+    return prev[n];
+  }
+
+  // Convert spoken number words into digits ("seventy eight" -> "78", "forty five fifty" stays partial).
+  function wordsToDigits(text) {
+    var toks = text.split(' '), out = [], i = 0;
+    function isNumWord(w) { return SMALL.hasOwnProperty(w) || TENS.hasOwnProperty(w) || w === 'hundred' || w === 'thousand'; }
+    while (i < toks.length) {
+      var w = toks[i];
+      var startsNum = isNumWord(w) && w !== 'oh' && w !== 'hundred' && w !== 'thousand';
+      var aHundred = (w === 'a' && (toks[i + 1] === 'hundred' || toks[i + 1] === 'thousand'));
+      if (!startsNum && !aHundred) { out.push(w); i++; continue; }
+      var total = 0, current = 0, used = false;
+      if (aHundred) { current = 1; i++; }
+      while (i < toks.length) {
+        var t = toks[i];
+        if (SMALL.hasOwnProperty(t) && t !== 'oh') { current += SMALL[t]; used = true; i++; }
+        else if (TENS.hasOwnProperty(t)) { current += TENS[t]; used = true; i++; }
+        else if (t === 'hundred') { current = (current || 1) * 100; used = true; i++; }
+        else if (t === 'thousand') { total += (current || 1) * 1000; current = 0; used = true; i++; }
+        else if (t === 'and' && i + 1 < toks.length && isNumWord(toks[i + 1]) && toks[i + 1] !== 'oh') { i++; }
+        else break;
+      }
+      var num = total + current;
+      if (toks[i] === 'point' && i + 1 < toks.length && (SMALL.hasOwnProperty(toks[i + 1]) || TENS.hasOwnProperty(toks[i + 1]))) {
+        i++; var dec = '';
+        while (i < toks.length && (SMALL.hasOwnProperty(toks[i]) || TENS.hasOwnProperty(toks[i]))) {
+          var v = SMALL.hasOwnProperty(toks[i]) ? SMALL[toks[i]] : TENS[toks[i]];
+          if (TENS.hasOwnProperty(toks[i]) && i + 1 < toks.length && SMALL.hasOwnProperty(toks[i + 1]) && SMALL[toks[i + 1]] < 10 && SMALL[toks[i + 1]] > 0) { v += SMALL[toks[i + 1]]; i++; }
+          dec += String(v); i++;
+        }
+        out.push(num + '.' + dec);
+      } else if (used) out.push(String(num));
+      else out.push(w);
+    }
+    return out.join(' ');
+  }
+
+  function extractAmount(text) {
+    var t = wordsToDigits(text), m;
+    m = t.match(/\$?(\d+(?:\.\d+)?)\s*(?:dollars?|bucks?)\s*(?:and\s*)?(\d{1,2})(?:\s*cents?)?(?:\s|$)/);
+    if (m) return round2(parseFloat(m[1]) + parseInt(m[2], 10) / 100);
+    m = t.match(/\$(\d+(?:\.\d+)?)/);
+    if (m) return round2(parseFloat(m[1]));
+    m = t.match(/(\d+(?:\.\d+)?)\s*(?:dollars?|bucks?|loonies)/);
+    if (m) return round2(parseFloat(m[1]));
+    m = t.match(/(\d+)\s*cents?/);
+    if (m) return round2(parseInt(m[1], 10) / 100);
+    m = t.match(/(\d+(?:\.\d+)?)/);
+    if (m) return round2(parseFloat(m[1]));
+    return null;
+  }
+  function round2(n) { return Math.round(n * 100) / 100; }
+
+  function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function phraseRe(p) { return new RegExp('(^| )' + escRe(p) + '(s|es)?(?= |$)'); }
+
+  // Find which envelope a piece of text refers to.
+  // Returns { envelope: name|null, candidates: [names], text: textWithMatchesBlanked, how }
+  function resolveEnvelope(rawText, envNames) {
+    var text = ' ' + norm(rawText) + ' ';
+    text = text.trim();
+    var scores = {}, how = {};
+    function bump(name, s, why) {
+      if (!name) return;
+      if (!scores[name] || scores[name] < s) { scores[name] = s; how[name] = why; }
+      else if (scores[name] === s) { /* keep */ }
+    }
+    function blank(re) {
+      var hit = false;
+      text = text.replace(re, function (all, pre) { hit = true; return pre + Array(all.length - pre.length + 1).join(' '); });
+      return hit;
+    }
+    var envs = (envNames || []).map(function (n) { return { name: n, n: norm(n), s: stemPhrase(n) }; });
+
+    // 1) exact envelope name in text (longest names first)
+    envs.slice().sort(function (a, b) { return b.n.length - a.n.length; }).forEach(function (e) {
+      if (!e.n) return;
+      if (blank(phraseRe(e.n)) || (e.s !== e.n && blank(phraseRe(e.s)))) bump(e.name, 3, 'name');
+    });
+
+    // 2) synonym keywords -> group -> existing envelope
+    function envForGroup(g) {
+      for (var i = 0; i < envs.length; i++) {
+        for (var k = 0; k < g.names.length; k++) {
+          if (envs[i].s === stemPhrase(g.names[k])) return envs[i].name;
+        }
+      }
+      return null;
+    }
+    var phrases = [];
+    GROUPS.forEach(function (g) {
+      g.strong.forEach(function (p) { phrases.push({ p: norm(p), g: g, w: 3 }); });
+      g.weak.forEach(function (p) { phrases.push({ p: norm(p), g: g, w: 1 }); });
+    });
+    phrases.sort(function (a, b) { return b.p.length - a.p.length || b.w - a.w; });
+    var hitPhrases = {};
+    var unmatchedGroupHit = false;
+    phrases.forEach(function (ph) {
+      var re = phraseRe(ph.p);
+      var already = hitPhrases[ph.p];
+      if (!already && !re.test(text)) return;
+      // same phrase can belong to multiple groups (weak "costco"): record every group before blanking
+      if (!already) { hitPhrases[ph.p] = true; blank(re); }
+      var target = envForGroup(ph.g);
+      if (target) bump(target, ph.w, 'keyword:' + ph.p); else if (ph.w >= 3) unmatchedGroupHit = true;
+    });
+
+    // 3) fuzzy match leftover words against envelope name words
+    var words = text.split(' ').filter(function (w) { return w.length >= 4 && !STOP[w] && !/\d/.test(w); });
+    words.forEach(function (w) {
+      var sw = stem(w);
+      envs.forEach(function (e) {
+        e.s.split(' ').concat(e.n.split(' ')).forEach(function (ew) {
+          if (ew.length < 4 || STOP[ew]) return;
+          var d = Math.min(lev(sw, ew), lev(w, ew));
+          var lim = ew.length >= 7 ? 2 : 1;
+          if (d <= lim) bump(e.name, 2, 'fuzzy:' + w);
+          else if (ew.length >= 5 && w.length >= 4 && ew.indexOf(sw) === 0) bump(e.name, 2, 'prefix:' + w);
+        });
+      });
+    });
+
+    var names = Object.keys(scores);
+    if (!names.length) return { envelope: null, candidates: [], text: text, how: unmatchedGroupHit ? 'no-envelope-for-keyword' : 'none' };
+    var best = Math.max.apply(null, names.map(function (n) { return scores[n]; }));
+    var top = names.filter(function (n) { return scores[n] === best; });
+    // Weak-only matches (like plain "costco") are never trusted on their own: always confirm.
+    if (top.length === 1 && best > 1) return { envelope: top[0], candidates: top, text: text, how: how[top[0]] };
+    var cands = names.sort(function (a, b) { return scores[b] - scores[a]; });
+    return { envelope: null, candidates: best > 1 ? top : cands, text: text, how: 'ambiguous' };
+  }
+
+  function titleCase(s) { return s.replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); }); }
+
+  function scopeOf(t) {
+    if (/(^| )today( |$)|so far today/.test(t)) return 'today';
+    if (/(^| )yesterday( |$)/.test(t)) return 'yesterday';
+    if (/this week|past week|last 7 days|last seven days/.test(t)) return 'week';
+    return 'period';
+  }
+
+  // Intents: cancel, undo, help, create, daysLeft, list, last, spentQuery, query (remaining), setBudget, fill, spend, unknown
+  function parse(raw, envNames) {
+    var t = norm(raw);
+    var res = { raw: String(raw || ''), intent: 'unknown', amount: null, envelope: null, candidates: [], how: '', scope: null, name: null };
+    if (!t) return res;
+    if (/^(cancel|never ?mind|stop|forget it|nothing|no)$/.test(t)) { res.intent = 'cancel'; return res; }
+    if (/(^| )(undo|scratch that|take that back|oops|(delete|remove|cancel|erase|undo) (the |my |that )?last( one| entry| expense| transaction| thing| purchase)?)( |$)/.test(t)) {
+      res.intent = 'undo'; return res;
+    }
+    if (/^(help|what can (you|i) (do|say)|what do you do|commands|options)( |$)|what can i ask/.test(t)) { res.intent = 'help'; return res; }
+
+    // create envelope
+    var cm = t.match(/(?:^| )(?:create|make|add|start|open|new)(?: me)? (?:a |an )?(?:new )?envelope(?: called| named| for)?(?: the)? (.+)$/) ||
+             t.match(/^new envelope(?: called| named| for)? (.+)$/);
+    if (cm) {
+      var rest = cm[1];
+      var amt = extractAmount(rest);
+      var nm = rest.replace(/(?:^| )(?:with|at|of|budget|for|and)(?: a| an| the)?(?: budget)?(?: of)?(?: \$?[\d.]+| [a-z]+ dollars?| \$?[\d.]+ (?:dollars?|bucks?)).*$/, '')
+                   .replace(/\$?\d+(?:\.\d+)?.*$/, '').replace(/ (with|budget|of|for|a|an|the)$/g, '').trim();
+      if (nm) {
+        res.intent = 'create'; res.name = titleCase(nm); res.amount = amt; return res;
+      }
+    }
+
+    if (/days? (are )?(left|remaining|to go|until)|how long (until|till|til|before)|when (is|s|does) (my )?(next )?(pay ?day|period|pay period)|next pay ?day|when do i get paid|period end/.test(t)) {
+      res.intent = 'daysLeft'; return res;
+    }
+
+    var r = resolveEnvelope(raw, envNames);
+    res.envelope = r.envelope; res.candidates = r.candidates; res.how = r.how;
+    var amount = extractAmount(r.text);
+    res.amount = amount;
+
+    if (/(list|read|show|tell me|go through|give me)( me)?( all| every| each)?( of)?( my| the)? envelopes|(all|every|each) (my |the |of my )?envelopes|envelopes (left|remaining|balances?|status)|how (are|is) (all )?(my |the )?envelopes|^envelopes$/.test(t)) {
+      res.intent = 'list'; return res;
+    }
+    if (/(last|latest|most recent|previous) (transaction|entry|expense|purchase|spend|thing|charge|one)|what did i (just )?(spend|buy|enter|put in|add)( |$)(?!.*(today|week|period|so far|on|at|in))|what was (my |the )?last/.test(t)) {
+      res.intent = 'last'; return res;
+    }
+
+    t = t.replace(/(^| )pay ?(period|cheque|check|day)s?( |$)/g, ' payperiod ').trim();
+    var question = /(^| )(how much|what|whats|did i|have i|total|tell me)( |$)/.test(t) || /\?\s*$/.test(String(raw));
+    var spentWord = /(^| )(spent|spend|spending|spendings|paid|bought)( |$)/.test(t);
+    if (question && spentWord && (amount == null || /how much|total/.test(t))) {
+      res.intent = 'spentQuery'; res.scope = scopeOf(t); res.amount = null; return res;
+    }
+
+    var spendVerb = /(^| )(spent|spend|spending|paid|pay|bought|buy|cost|costs|charged|blew|dropped|used|purchase|purchased)( |$)/.test(t);
+    var fillVerb = /(^| )(put|add|added|deposit|deposited|top up|topped up|move|moved|transfer|transferred|load|loaded|allocate|allocated|refill|fund|funded|stash|plus)( |$)/.test(t);
+    var queryWord = /(^| )(how much|whats left|what is left|what s left|how am i doing|how are we doing|remaining|balance|left in|left for|left on|have left|got left|is left|left this|left overall|left in total|status|check|left)( |$)/.test(t);
+    var budgetWord = /(^| )budget( |$)/.test(t) && /(^| )(set|make|change|update|budget is|budget to|budget at|budget of|budget for)( |$)/.test(t + ' ');
+    if (!budgetWord && /(^| )budget( |$)/.test(t) && amount != null && !spendVerb && !fillVerb && !queryWord) budgetWord = true;
+
+    if (queryWord && (amount == null || /how much|whats left|what is left|how am i/.test(t)) && !spendVerb) { res.intent = 'query'; res.amount = null; }
+    else if (budgetWord && amount != null) res.intent = 'setBudget';
+    else if (spendVerb && amount != null) res.intent = 'spend';
+    else if (fillVerb && amount != null) res.intent = 'fill';
+    else if (amount != null && (r.envelope || r.candidates.length || spendVerb || /(^| )(at|on)( |$)/.test(t) || /^\$?\d/.test(t))) res.intent = 'spend';
+    else if (amount != null) res.intent = 'spend';
+    else if (spendVerb || fillVerb) res.intent = spendVerb ? 'spend' : 'fill'; // amount missing -> app asks
+    else if (r.envelope && t.split(' ').length <= 3) res.intent = 'query';
+    return res;
+  }
+
+  return { parse: parse, resolveEnvelope: resolveEnvelope, extractAmount: extractAmount, wordsToDigits: wordsToDigits, norm: norm, GROUPS: GROUPS, scopeOf: scopeOf };
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = BudgetParser;
+
+/* ===== Pay periods: fixed semi-monthly, 1st-14th and 15th-last day of month (local time) ===== */
+var Period = (function () {
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); } // m 0-11
+  function ofDate(d) {
+    d = d ? new Date(d) : new Date();
+    var y = d.getFullYear(), m = d.getMonth(), half = d.getDate() <= 14 ? 1 : 2;
+    return fromParts(y, m, half);
+  }
+  function fromParts(y, m, half) {
+    var startDay = half === 1 ? 1 : 15;
+    var endDay = half === 1 ? 14 : daysInMonth(y, m);
+    return {
+      key: y + '-' + pad(m + 1) + '-' + (half === 1 ? 'A' : 'B'),
+      year: y, month: m, half: half,
+      start: new Date(y, m, startDay, 0, 0, 0, 0),
+      end: new Date(y, m, endDay, 23, 59, 59, 999),
+      startDay: startDay, endDay: endDay,
+      label: MONTHS[m].slice(0, 3) + ' ' + startDay + '–' + endDay + (', ' + y)
+    };
+  }
+  function fromKey(key) {
+    var p = String(key).split('-');
+    return fromParts(parseInt(p[0], 10), parseInt(p[1], 10) - 1, p[2] === 'A' ? 1 : 2);
+  }
+  function next(p) { return p.half === 1 ? fromParts(p.year, p.month, 2) : fromParts(p.month === 11 ? p.year + 1 : p.year, (p.month + 1) % 12, 1); }
+  function prev(p) { return p.half === 2 ? fromParts(p.year, p.month, 1) : fromParts(p.month === 0 ? p.year - 1 : p.year, (p.month + 11) % 12, 2); }
+  function contains(p, ts) { var t = +new Date(ts); return t >= +p.start && t <= +p.end; }
+  // Days left counting today: on the 14th -> 1, on the 1st -> 14.
+  function daysLeft(p, now) {
+    now = now ? new Date(now) : new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((new Date(p.year, p.month, p.endDay) - today) / 86400000) + 1;
+  }
+  function nextPayday(now) { return next(ofDate(now)).start; }
+  return { ofDate: ofDate, fromKey: fromKey, fromParts: fromParts, next: next, prev: prev, contains: contains,
+    daysLeft: daysLeft, nextPayday: nextPayday, daysInMonth: daysInMonth, MONTHS: MONTHS };
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = Period;
+
+  </script>
+  <script>
+    // ========== STATE ==========
+    // Data format is a superset of the original app ("envelope-budget-v2": { envelopes:[{id,name,balance}], history:[...] }).
+    // Added fields: envelope.budget, entry.kind/groupId/budgetDelta, settings, currentPeriod, periods.
+    let envelopes = [];
+    let history = [];
+    let settings = { carryOver: true, voice: true, lastBackup: 0 };
+    let currentPeriod = null;   // key like "2026-10-B"
+    let periods = {};           // closed-period snapshots by key
+    let editingId = null;
+    let deleteConfirmPending = false;
+    let clearHistoryPending = false;
+    let viewKey = null;         // pay period being viewed
+    let pendingDeleteId = null;
+    let pendingAsk = null;      // { parsed } waiting for "Which envelope?"
+    let pendingImport = null;
+
+    const STORAGE_KEY = 'envelope-budget-v2';
+    const LEGACY_KEYS = ['envelope-budget', 'envelope-budget-v1', 'envelopeBudget'];
+    const MISC_NAME = 'Miscellaneous';
+    const STARTERS = ['Groceries', 'Fuel', 'Clothes', 'Entertainment', 'Eating Out', 'Miscellaneous'];
+    const DATA_VERSION = 3;
+
+    // ========== PERSISTENCE ==========
+    const memStore = {};
+    let storageOk = true;
+    function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { storageOk = false; return memStore[k] || null; } }
+    function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { storageOk = false; memStore[k] = v; } }
+
+    function migrate(data) {
+      const out = {
+        envelopes: Array.isArray(data && data.envelopes) ? data.envelopes : [],
+        history: Array.isArray(data && data.history) ? data.history : [],
+        settings: Object.assign({ carryOver: true, voice: true, lastBackup: 0 }, (data && data.settings) || {}),
+        currentPeriod: (data && data.currentPeriod) || null,
+        periods: (data && data.periods) || {}
+      };
+      out.envelopes = out.envelopes.filter(e => e && e.name).map(e => ({
+        id: e.id || uid(),
+        name: String(e.name),
+        balance: round2(Number(e.balance) || 0),
+        budget: round2(Number(e.budget) || 0)
+      }));
+      out.history = out.history.filter(h => h && (h.type === 'spend' || h.type === 'fill')).map(h => {
+        const o = Object.assign({}, h);
+        o.id = o.id || uid();
+        o.amount = round2(Number(o.amount) || 0);
+        o.ts = Number(o.ts) || Date.now();
+        if (!o.kind && o.note === 'Balance adjusted') o.kind = 'adjust';
+        return o;
+      });
+      if (!out.currentPeriod) out.currentPeriod = Period.ofDate(new Date()).key; // existing users: start in today's period, no reset
+      return out;
+    }
+
+    function load() {
+      let raw = storeGet(STORAGE_KEY), fromLegacy = false;
+      if (!raw) {
+        for (const k of LEGACY_KEYS) { const r = storeGet(k); if (r) { raw = r; fromLegacy = true; break; } }
+      }
+      let data = null;
+      if (raw) {
+        try { data = JSON.parse(raw); } catch (e) { console.warn('Could not load data', e); }
+        if (data && !data.version && !storeGet(STORAGE_KEY + '-premigration')) storeSet(STORAGE_KEY + '-premigration', raw); // safety copy
+      }
+      const m = migrate(data || {});
+      envelopes = m.envelopes; history = m.history; settings = m.settings; currentPeriod = m.currentPeriod; periods = m.periods;
+      const effectivelyEmpty = envelopes.length === 0 ||
+        (envelopes.length === 1 && envelopes[0].name === MISC_NAME && envelopes[0].balance === 0 && history.length === 0);
+      if (effectivelyEmpty && history.length === 0) {
+        const misc = envelopes.find(e => e.name === MISC_NAME);
+        envelopes = STARTERS.map(n => (n === MISC_NAME && misc) ? misc : { id: uid(), name: n, balance: 0, budget: 0 });
+      }
+      ensureMisc();
+      if (!data || !data.version || fromLegacy) save();
+    }
+
+    function save() {
+      storeSet(STORAGE_KEY, JSON.stringify({ version: DATA_VERSION, envelopes, history, settings, currentPeriod, periods }));
+    }
+
+    function ensureMisc() {
+      const exists = envelopes.some(e => e.name.toLowerCase() === MISC_NAME.toLowerCase());
+      if (!exists) {
+        envelopes.push({ id: uid(), name: MISC_NAME, balance: 0, budget: 0 });
+        save();
+      }
+    }
+
+    // ========== HELPERS ==========
+    function money(n) {
+      n = Number(n) || 0;
+      return (n < 0 ? '-$' : '$') + Math.abs(n).toFixed(2);
+    }
+    function round2(n) { return Math.round(n * 100) / 100; }
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+    function formatDate(ts) {
+      const d = new Date(ts);
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+             ' ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    }
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function sortedEnvelopes() {
+      return envelopes.slice().sort((a, b) => {
+        if (a.name === MISC_NAME) return 1;
+        if (b.name === MISC_NAME) return -1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+    function findEnv(name) { return envelopes.find(e => e.name.toLowerCase() === String(name).toLowerCase()); }
+    function totalAvailable() { return round2(envelopes.reduce((s, e) => s + e.balance, 0)); }
+    function totalBudget() { return round2(envelopes.reduce((s, e) => s + (e.budget || 0), 0)); }
+    function isRealSpend(h) { return h.type === 'spend' && !h.kind; }
+    function spentBetween(from, to, envId) {
+      return round2(history.filter(h => isRealSpend(h) && h.ts >= +from && h.ts <= +to && (!envId || h.envelopeId === envId))
+        .reduce((s, h) => s + h.amount, 0));
+    }
+    function curP() { return Period.fromKey(currentPeriod); }
+    function spentThisPeriod(envId) { const p = curP(); return spentBetween(p.start, p.end, envId); }
+    function addEntry(o) { const h = Object.assign({ id: uid(), ts: Date.now(), note: '' }, o); history.push(h); return h; }
+    function nice(d) { return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }); }
+
+    // ========== PAY PERIODS (1st–14th, 15th–end) ==========
+    function checkRollover(now) {
+      now = now || new Date();
+      const target = Period.ofDate(now).key;
+      let guard = 0, rolled = false;
+      while (currentPeriod !== target && guard++ < 120) {
+        const p = Period.fromKey(currentPeriod);
+        if (+p.start > +now) { currentPeriod = target; break; } // clock went backwards; just re-anchor
+        periods[p.key] = {
+          key: p.key, label: p.label, closedAt: Date.now(),
+          totalBudget: totalBudget(), endTotal: totalAvailable(), totalSpent: spentBetween(p.start, p.end),
+          envelopes: envelopes.map(e => ({ id: e.id, name: e.name, budget: e.budget || 0, endBalance: e.balance, spent: spentBetween(p.start, p.end, e.id) }))
+        };
+        const n = Period.next(p);
+        const groupId = uid();
+        envelopes.forEach(e => {
+          const b = e.budget || 0;
+          const newBal = settings.carryOver ? round2(e.balance + b) : round2(b);
+          const diff = round2(newBal - e.balance);
+          if (diff !== 0) {
+            addEntry({ type: diff > 0 ? 'fill' : 'spend', kind: 'rollover', groupId, envelopeId: e.id, envelopeName: e.name,
+              amount: Math.abs(diff), note: settings.carryOver ? 'New pay period budget' : 'New pay period reset', ts: +n.start });
+          }
+          e.balance = newBal;
+        });
+        currentPeriod = n.key;
+        rolled = true;
+      }
+      if (rolled) { viewKey = currentPeriod; save(); }
+      return rolled;
+    }
+
+    // ========== RENDER ==========
+    function render() {
+      const total = totalAvailable();
+      const totalEl = document.getElementById('totalAvailable');
+      totalEl.textContent = money(total);
+      totalEl.className = 'value ' + (total > 0 ? 'positive' : total < 0 ? 'negative' : '');
+      document.getElementById('envelopeCount').textContent = envelopes.length;
+
+      renderPeriod();
+
+      const list = document.getElementById('envelopesList');
+      if (envelopes.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <p>No envelopes yet.<br>Create one to get started.</p>
+            <button class="btn-primary" type="button" id="emptyCreateBtn">+ Create Envelope</button>
+          </div>`;
+        const emptyBtn = document.getElementById('emptyCreateBtn');
+        if (emptyBtn) emptyBtn.addEventListener('click', openNewModal);
+      } else {
+        list.innerHTML = sortedEnvelopes().map(e => {
+          const balClass = e.balance > 0 ? 'positive' : e.balance < 0 ? 'negative' : 'zero';
+          const envClass = e.balance < 0 ? 'negative' : e.balance < 20 ? 'low' : '';
+          const spent = spentThisPeriod(e.id);
+          const denom = Math.max(e.budget || 0, e.balance + spent, 0);
+          const pct = denom > 0 ? Math.min(100, Math.round(spent / denom * 100)) : (spent > 0 ? 100 : 0);
+          const barCls = e.balance < 0 ? 'over' : pct >= 80 ? 'mid' : '';
+          const meta = (e.budget ? `Spent ${money(spent)} of ${money(e.budget)} budget` : `Spent ${money(spent)} · no budget set`) + ' this period';
+          return `
+            <div class="envelope ${envClass}">
+              <div class="envelope-info">
+                <div class="envelope-name">${escapeHtml(e.name)}</div>
+                <div class="envelope-balance ${balClass}">${money(e.balance)}</div>
+                <div class="envelope-meta">${meta}</div>
+              </div>
+              <div class="envelope-actions">
+                <button class="btn-secondary btn-small" type="button" data-spend="${e.id}" aria-label="Spend from ${escapeHtml(e.name)}">−</button>
+                <button class="btn-secondary btn-small" type="button" data-edit="${e.id}" aria-label="Edit ${escapeHtml(e.name)}">✎</button>
+              </div>
+              <div class="bar"><span class="${barCls}" style="width:${e.balance < 0 ? 100 : pct}%"></span></div>
+            </div>`;
+        }).join('');
+        list.querySelectorAll('[data-spend]').forEach(btn => btn.addEventListener('click', () => quickSpend(btn.getAttribute('data-spend'))));
+        list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => openEdit(btn.getAttribute('data-edit'))));
+      }
+
+      // History (filtered to the pay period being viewed)
+      const vp = Period.fromKey(viewKey || currentPeriod);
+      const histList = document.getElementById('historyList');
+      const clearBtn = document.getElementById('btnClearHistory');
+      const clearHint = document.getElementById('clearHistoryHint');
+      clearHistoryPending = false;
+      if (clearBtn) clearBtn.textContent = 'Clear History';
+      if (clearHint) { clearHint.style.display = 'none'; clearHint.textContent = ''; }
+      document.getElementById('historyTitle').textContent = 'Recent Activity' + (vp.key !== currentPeriod ? ' · ' + vp.label : '');
+      const items = history.filter(h => Period.contains(vp, h.ts)).sort((a, b) => b.ts - a.ts);
+      if (items.length === 0) {
+        histList.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">No activity yet.</p>';
+      } else {
+        histList.innerHTML = items.map(h => {
+          const isSpend = h.type === 'spend';
+          const confirm = pendingDeleteId === h.id;
+          return `
+            <div class="history-item">
+              <div class="left">
+                <div class="type ${h.type}">${isSpend ? 'Spend' : 'Added'} · ${escapeHtml(h.envelopeName)}</div>
+                <div class="meta">${formatDate(h.ts)}${h.note ? ' · ' + escapeHtml(h.note) : ''}</div>
+              </div>
+              <div class="right">
+                <div class="amount ${h.type}">${isSpend ? '−' : '+'}${money(h.amount)}</div>
+                <button class="del ${confirm ? 'confirm' : ''}" type="button" data-del="${h.id}" aria-label="Delete entry">${confirm ? 'Delete?' : '✕'}</button>
+              </div>
+            </div>`;
+        }).join('');
+        histList.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const id = btn.getAttribute('data-del');
+          if (pendingDeleteId !== id) { pendingDeleteId = id; render(); return; }
+          pendingDeleteId = null;
+          const h = history.find(x => x.id === id);
+          if (h) { reverseEntry(h); history = history.filter(x => x.id !== id); save(); }
+          render();
+          toast('Entry deleted and balance restored');
+        }));
+      }
+      clearBtn.style.display = history.length ? 'block' : 'none';
+
+      const overdue = !settings.lastBackup || (Date.now() - settings.lastBackup) > 16 * 86400000;
+      document.querySelector('.backup p').style.color = (overdue && history.length) ? 'var(--orange)' : '';
+    }
+
+    function renderPeriod() {
+      const cur = curP();
+      const vp = Period.fromKey(viewKey || currentPeriod);
+      const isCur = vp.key === cur.key;
+      document.getElementById('periodLabel').textContent = isCur ? 'This Pay Period' : 'Past Pay Period';
+      document.getElementById('periodName').textContent = vp.label;
+      const snap = periods[vp.key];
+      const spent = spentBetween(vp.start, vp.end);
+      document.getElementById('statBudget').textContent = isCur ? money(totalBudget()) : (snap ? money(snap.totalBudget) : '—');
+      document.getElementById('statSpent').textContent = money(spent);
+      document.getElementById('statLeftLabel').textContent = isCur ? 'Days Left' : 'Left at End';
+      document.getElementById('statLeft').textContent = isCur ? String(Period.daysLeft(cur)) : (snap ? money(snap.endTotal) : '—');
+      document.getElementById('periodSub').textContent = isCur
+        ? `${money(totalAvailable())} left this pay period · next payday ${Period.nextPayday().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+        : 'Tap › to return to the current pay period';
+      const bd = document.getElementById('periodBreakdown');
+      if (isCur) bd.innerHTML = '';
+      else {
+        const rows = (snap ? snap.envelopes : envelopes.map(e => ({ id: e.id, name: e.name }))).map(e =>
+          ({ name: e.name, spent: spentBetween(vp.start, vp.end, e.id) })).filter(r => r.spent > 0);
+        bd.innerHTML = rows.length ? rows.map(r => `<div><span>${escapeHtml(r.name)}</span><span>${money(r.spent)} spent</span></div>`).join('')
+          : '<div><span>No spending recorded</span><span></span></div>';
+      }
+      document.getElementById('nextPeriod').disabled = isCur;
+      document.getElementById('nextPeriod').style.opacity = isCur ? 0.35 : 1;
+      document.getElementById('btnBudgets').style.display = isCur ? '' : 'none';
+    }
+
+    document.getElementById('prevPeriod').addEventListener('click', () => { viewKey = Period.prev(Period.fromKey(viewKey || currentPeriod)).key; render(); });
+    document.getElementById('nextPeriod').addEventListener('click', () => {
+      const n = Period.next(Period.fromKey(viewKey || currentPeriod));
+      if (+n.start <= +curP().start) { viewKey = n.key; render(); }
+    });
+
+    // ========== MODALS ==========
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      if (id === 'modalEdit') {
+        deleteConfirmPending = false;
+        const delBtn = document.getElementById('btnDeleteEnv');
+        if (delBtn) delBtn.textContent = 'Delete Envelope';
+        const hint = document.getElementById('deleteHint');
+        if (hint) { hint.style.display = 'none'; hint.textContent = ''; }
+      }
+      if (id === 'modalAsk') { pendingAsk = null; stopListening(); }
+    }
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+      el.addEventListener('click', (e) => { if (e.target === el) closeModal(el.id); });
+    });
+
+    // ========== CORE OPERATIONS (shared by buttons and voice) ==========
+    function doSpend(env, amount, note, via) {
+      env.balance = round2(env.balance - amount);
+      addEntry({ type: 'spend', envelopeId: env.id, envelopeName: env.name, amount: round2(amount), note: note || '', via: via || 'tap' });
+      save(); render();
+    }
+    function doFill(env, amount, note, via, groupId) {
+      env.balance = round2(env.balance + amount);
+      addEntry({ type: 'fill', envelopeId: env.id, envelopeName: env.name, amount: round2(amount), note: note || '', via: via || 'tap', groupId });
+    }
+    function doSetBudget(env, amount) {
+      const delta = round2(amount - (env.budget || 0));
+      env.budget = round2(amount);
+      if (delta !== 0) {
+        env.balance = round2(env.balance + delta);
+        addEntry({ type: delta > 0 ? 'fill' : 'spend', kind: 'budget', budgetDelta: delta, envelopeId: env.id, envelopeName: env.name,
+          amount: Math.abs(delta), note: 'Budget set to ' + money(amount) + ' per pay period' });
+      }
+    }
+    function createEnvelope(name, budget, start) {
+      budget = round2(budget || 0);
+      const startAmt = (start === undefined || start === null || isNaN(start)) ? budget : round2(start);
+      const env = { id: uid(), name, balance: 0, budget };
+      envelopes.push(env);
+      if (startAmt > 0) doFill(env, startAmt, 'Starting balance');
+      save(); render();
+      return env;
+    }
+    function reverseEntry(h) {
+      const env = envelopes.find(e => e.id === h.envelopeId);
+      if (!env) return;
+      env.balance = round2(env.balance + (h.type === 'spend' ? h.amount : -h.amount));
+      if (h.budgetDelta) env.budget = round2((env.budget || 0) - h.budgetDelta);
+    }
+    function lastUserEntry() {
+      for (let i = history.length - 1; i >= 0; i--) if (history[i].kind !== 'rollover') return history[i];
+      return null;
+    }
+    function undoLast() {
+      const last = lastUserEntry();
+      if (!last) return null;
+      const group = last.groupId ? history.filter(h => h.groupId === last.groupId && h.kind !== 'rollover') : [last];
+      group.forEach(reverseEntry);
+      const ids = new Set(group.map(h => h.id));
+      history = history.filter(h => !ids.has(h.id));
+      save(); render();
+      return group;
+    }
+    function remainingLine(env) {
+      const envPart = env.balance >= 0 ? `${money(env.balance)} left in ${env.name}.` : `${env.name} is over by ${money(-env.balance)}.`;
+      const tot = totalAvailable();
+      const totPart = tot >= 0 ? `${money(tot)} left this pay period.` : `You're over by ${money(-tot)} this pay period.`;
+      return envPart + ' ' + totPart;
+    }
+
+    // ========== BUTTON ACTIONS (original app flows) ==========
+    function openNewModal() {
+      document.getElementById('newName').value = '';
+      document.getElementById('newAmount').value = '';
+      document.getElementById('newBudget').value = '';
+      openModal('modalNew');
+      setTimeout(() => document.getElementById('newName').focus(), 50);
+    }
+    document.getElementById('btnNew').addEventListener('click', openNewModal);
+    document.getElementById('cancelNew').addEventListener('click', () => closeModal('modalNew'));
+    document.getElementById('confirmNew').addEventListener('click', () => {
+      const name = document.getElementById('newName').value.trim();
+      if (!name) { alert('Please enter a name'); return; }
+      if (findEnv(name)) { alert('You already have an envelope called ' + name); return; }
+      const budget = parseFloat(document.getElementById('newBudget').value) || 0;
+      const startRaw = document.getElementById('newAmount').value;
+      createEnvelope(name, budget, startRaw === '' ? null : (parseFloat(startRaw) || 0));
+      closeModal('modalNew');
+    });
+
+    function populateEnvelopeSelect(selectId, preferId) {
+      const select = document.getElementById(selectId);
+      select.innerHTML = sortedEnvelopes().map(e => {
+        const selected = (preferId && e.id === preferId) ? 'selected' : '';
+        return `<option value="${e.id}" ${selected}>${escapeHtml(e.name)} (${money(e.balance)})</option>`;
+      }).join('');
+    }
+    function openSpend(id) {
+      ensureMisc();
+      if (envelopes.length === 0) { alert('Create an envelope first'); return; }
+      populateEnvelopeSelect('spendEnvelope', id);
+      document.getElementById('spendAmount').value = '';
+      document.getElementById('spendNote').value = '';
+      openModal('modalSpend');
+      setTimeout(() => document.getElementById('spendAmount').focus(), 50);
+    }
+    document.getElementById('btnSpend').addEventListener('click', () => openSpend());
+    function quickSpend(id) { openSpend(id); }
+    document.getElementById('cancelSpend').addEventListener('click', () => closeModal('modalSpend'));
+    document.getElementById('confirmSpend').addEventListener('click', () => {
+      const envId = document.getElementById('spendEnvelope').value;
+      const amount = parseFloat(document.getElementById('spendAmount').value);
+      const note = document.getElementById('spendNote').value.trim();
+      if (!envId || isNaN(amount) || amount <= 0) { alert('Enter a valid amount'); return; }
+      const env = envelopes.find(e => e.id === envId);
+      if (!env) return;
+      doSpend(env, amount, note, 'tap');
+      closeModal('modalSpend');
+      document.getElementById('voiceHeard').textContent = '';
+      reply(`Spent ${money(amount)} from ${env.name}.\n` + remainingLine(env), 'ok', { undo: true, speakText: remainingLine(env) });
+    });
+
+    document.getElementById('btnFill').addEventListener('click', () => {
+      if (envelopes.length === 0) { alert('Create an envelope first'); return; }
+      document.getElementById('fillRows').innerHTML = envelopes.slice().sort((a, b) => a.name.localeCompare(b.name)).map(e => `
+          <div class="fill-row">
+            <div class="name">${escapeHtml(e.name)}</div>
+            <input type="number" data-id="${e.id}" placeholder="0.00" step="0.01" min="0" inputmode="decimal" />
+          </div>`).join('');
+      document.getElementById('fillNote').value = '';
+      openModal('modalFill');
+    });
+    document.getElementById('cancelFill').addEventListener('click', () => closeModal('modalFill'));
+    document.getElementById('confirmFill').addEventListener('click', () => {
+      const inputs = document.querySelectorAll('#fillRows input');
+      const note = document.getElementById('fillNote').value.trim();
+      const groupId = uid();
+      let added = [];
+      inputs.forEach(input => {
+        const amount = parseFloat(input.value);
+        if (!isNaN(amount) && amount > 0) {
+          const env = envelopes.find(e => e.id === input.dataset.id);
+          if (env) { doFill(env, amount, note, 'tap', groupId); added.push([env, amount]); }
+        }
+      });
+      if (!added.length) { alert('Enter at least one amount'); return; }
+      save(); render(); closeModal('modalFill');
+      document.getElementById('voiceHeard').textContent = '';
+      if (added.length === 1) reply(`Added ${money(added[0][1])} to ${added[0][0].name}.\n` + remainingLine(added[0][0]), 'ok', { undo: true, speakText: remainingLine(added[0][0]) });
+      else { const t = `Added money to ${added.length} envelopes. ${money(totalAvailable())} left this pay period.`; reply(t, 'ok', { undo: true }); }
+    });
+
+    // Budgets modal
+    document.getElementById('btnBudgets').addEventListener('click', () => {
+      document.getElementById('budgetRows').innerHTML = sortedEnvelopes().map(e => `
+          <div class="fill-row">
+            <div class="name">${escapeHtml(e.name)}</div>
+            <input type="number" data-bid="${e.id}" value="${e.budget ? Number(e.budget).toFixed(2) : ''}" placeholder="0.00" step="0.01" min="0" inputmode="decimal" />
+          </div>`).join('');
+      const upd = () => {
+        let t = 0; document.querySelectorAll('#budgetRows input').forEach(i => t += parseFloat(i.value) || 0);
+        document.getElementById('budgetTotal').textContent = 'Total per pay period: ' + money(t) + ' (about ' + money(t * 2) + ' a month)';
+      };
+      document.querySelectorAll('#budgetRows input').forEach(i => i.addEventListener('input', upd));
+      upd();
+      openModal('modalBudgets');
+    });
+    document.getElementById('cancelBudgets').addEventListener('click', () => closeModal('modalBudgets'));
+    document.getElementById('confirmBudgets').addEventListener('click', () => {
+      document.querySelectorAll('#budgetRows input').forEach(i => {
+        const env = envelopes.find(e => e.id === i.dataset.bid);
+        const v = i.value === '' ? 0 : parseFloat(i.value);
+        if (env && !isNaN(v) && v >= 0 && round2(v) !== (env.budget || 0)) doSetBudget(env, v);
+      });
+      save(); render(); closeModal('modalBudgets');
+      toast('Budgets saved: ' + money(totalBudget()) + ' per pay period');
+    });
+
+    // Edit
+    function openEdit(id) {
+      const env = envelopes.find(e => e.id === id);
+      if (!env) return;
+      editingId = id;
+      deleteConfirmPending = false;
+      document.getElementById('editName').value = env.name;
+      document.getElementById('editBudget').value = env.budget ? Number(env.budget).toFixed(2) : '';
+      document.getElementById('editBalance').value = Number(env.balance).toFixed(2);
+      const hint = document.getElementById('deleteHint');
+      hint.style.display = 'none'; hint.textContent = '';
+      document.getElementById('btnDeleteEnv').textContent = 'Delete Envelope';
+      openModal('modalEdit');
+    }
+    document.getElementById('cancelEdit').addEventListener('click', () => closeModal('modalEdit'));
+    document.getElementById('confirmEdit').addEventListener('click', () => {
+      const name = document.getElementById('editName').value.trim();
+      if (!name) { alert('Name required'); return; }
+      const newBalance = parseFloat(document.getElementById('editBalance').value);
+      if (isNaN(newBalance)) { alert('Enter a valid balance amount'); return; }
+      const budgetRaw = document.getElementById('editBudget').value;
+      const newBudget = budgetRaw === '' ? 0 : parseFloat(budgetRaw);
+      if (isNaN(newBudget) || newBudget < 0) { alert('Enter a valid budget amount'); return; }
+      const env = envelopes.find(e => e.id === editingId);
+      if (!env) return;
+      const other = findEnv(name);
+      if (other && other.id !== env.id) { alert('You already have an envelope called ' + name); return; }
+      const oldName = env.name;
+      const oldBalance = env.balance;
+      const rounded = round2(newBalance);
+      env.name = name;
+      if (name !== oldName) history.forEach(h => { if (h.envelopeId === editingId) h.envelopeName = name; });
+      if (rounded !== oldBalance) {
+        const diff = round2(rounded - oldBalance);
+        env.balance = rounded;
+        addEntry({ type: diff >= 0 ? 'fill' : 'spend', kind: 'adjust', envelopeId: editingId, envelopeName: name, amount: Math.abs(diff), note: 'Balance adjusted' });
+        if (round2(newBudget) !== (env.budget || 0)) env.budget = round2(newBudget); // balance typed explicitly: don't double-adjust
+      } else if (round2(newBudget) !== (env.budget || 0)) {
+        doSetBudget(env, newBudget);
+      }
+      save(); render(); closeModal('modalEdit');
+    });
+    document.getElementById('btnDeleteEnv').addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const env = envelopes.find(x => x.id === editingId);
+      if (!env) return;
+      const hint = document.getElementById('deleteHint');
+      if (env.name === MISC_NAME) { hint.textContent = 'Miscellaneous envelope cannot be deleted.'; hint.style.display = 'block'; return; }
+      const delBtn = document.getElementById('btnDeleteEnv');
+      if (!deleteConfirmPending) {
+        deleteConfirmPending = true;
+        delBtn.textContent = 'Tap again to confirm delete';
+        hint.textContent = 'This will permanently remove the envelope and its balance.';
+        hint.style.display = 'block';
+        return;
+      }
+      envelopes = envelopes.filter(x => x.id !== editingId);
+      editingId = null; deleteConfirmPending = false;
+      save(); render(); closeModal('modalEdit');
+    });
+
+    // Clear history — two-tap confirm (reliable on mobile)
+    document.getElementById('btnClearHistory').addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const btn = document.getElementById('btnClearHistory');
+      const hint = document.getElementById('clearHistoryHint');
+      if (!clearHistoryPending) {
+        clearHistoryPending = true;
+        btn.textContent = 'Tap again to confirm clear';
+        hint.textContent = 'This clears activity history only. Envelope balances stay the same.';
+        hint.style.display = 'block';
+        return;
+      }
+      history = []; clearHistoryPending = false;
+      btn.textContent = 'Clear History'; hint.style.display = 'none'; hint.textContent = '';
+      save(); render();
+    });
+
+    document.getElementById('btnUndo').addEventListener('click', () => { unlockSpeech(); runCommand('undo', 'button'); });
+
+    // ========== SPEECH OUTPUT ==========
+    let speechUnlocked = false;
+    function pickVoice() {
+      try {
+        const vs = window.speechSynthesis.getVoices() || [];
+        return vs.find(v => /en-CA/i.test(v.lang)) || vs.find(v => /en-US/i.test(v.lang) && /samantha|alex|aaron|nicky/i.test(v.name)) || vs.find(v => /^en/i.test(v.lang)) || null;
+      } catch (e) { return null; }
+    }
+    function unlockSpeech() {
+      if (speechUnlocked || !('speechSynthesis' in window)) return;
+      try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); speechUnlocked = true; } catch (e) {}
+    }
+    function speak(text) {
+      if (!settings.voice || !('speechSynthesis' in window) || !text) return;
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(String(text).replace(/\n/g, ' ').replace(/–/g, ' to '));
+        const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-CA';
+        u.rate = 1; u.pitch = 1; u.volume = 1;
+        window.speechSynthesis.speak(u);
+      } catch (e) {}
+    }
+    if ('speechSynthesis' in window) { try { window.speechSynthesis.onvoiceschanged = () => {}; window.speechSynthesis.getVoices(); } catch (e) {} }
+
+    function reply(text, cls, opts) {
+      opts = opts || {};
+      const box = document.getElementById('voiceReply');
+      box.className = 'voice-reply ' + (cls || '');
+      box.style.display = 'block';
+      box.innerHTML = escapeHtml(text) + (opts.undo ? '<div class="reply-actions"><button class="btn-secondary btn-small" type="button" id="replyUndo">↶ Undo</button></div>' : '');
+      const ub = document.getElementById('replyUndo');
+      if (ub) ub.addEventListener('click', () => runCommand('undo', 'button'));
+      if (!opts.silent) speak(opts.speakText || text);
+    }
+    let toastTimer = null;
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.style.display = 'block';
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2600);
+    }
+
+    // ========== SPEECH INPUT ==========
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+    let rec = null, listening = false, srBroken = false, listenTimer = null;
+    const FALLBACK_HINT = 'Voice listening isn’t available in this browser (common in Edge and Chrome on iPhone). Tap the box, tap the 🎤 on your iPhone keyboard, say it, then tap Go. Answers are still spoken out loud.';
+    function showHint(msg) { const h = document.getElementById('voiceHint'); h.textContent = msg; h.style.display = 'block'; }
+    function setListening(on, mode) {
+      listening = on;
+      const b = mode === 'answer' ? document.getElementById('askMic') : document.getElementById('btnMic');
+      document.getElementById('btnMic').classList.toggle('listening', on && mode !== 'answer');
+      document.getElementById('micTitle').textContent = on && mode !== 'answer' ? 'Listening… tap to stop' : 'Tap & speak';
+      document.getElementById('askMic').textContent = on && mode === 'answer' ? '● Listening… tap to stop' : '🎤 Answer by voice';
+      void b;
+    }
+    function stopListening() { if (rec) { try { rec.abort(); } catch (e) {} } rec = null; clearTimeout(listenTimer); setListening(false); }
+    function fallbackInput(mode) {
+      showHint(FALLBACK_HINT);
+      document.getElementById('askHint').textContent = mode === 'answer' ? 'Type the envelope name, or tap the 🎤 on your keyboard to dictate it.' : '';
+      const inp = document.getElementById(mode === 'answer' ? 'askInput' : 'cmdInput');
+      inp.focus();
+    }
+    function startListening(mode) {
+      unlockSpeech();
+      if (listening) { try { rec && rec.stop(); } catch (e) {} return; }
+      if (!SR || srBroken) { fallbackInput(mode); return; }
+      try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+      let finalText = '', interim = '', handled = false, errored = false, gotAudio = false;
+      try {
+        rec = new SR();
+        rec.lang = 'en-CA'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+      } catch (e) { srBroken = true; fallbackInput(mode); return; }
+      const done = (t) => {
+        if (handled) return; handled = true;
+        clearTimeout(listenTimer); setListening(false, mode);
+        try { rec && rec.stop(); } catch (e) {}
+        if (mode === 'answer') handleAnswer(t); else runCommand(t, 'voice');
+      };
+      rec.onstart = rec.onaudiostart = () => { gotAudio = true; };
+      rec.onresult = (e) => {
+        gotAudio = true;
+        interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const tr = e.results[i][0].transcript;
+          if (e.results[i].isFinal) finalText += tr; else interim += tr;
+        }
+        document.getElementById('voiceHeard').textContent = '“' + (finalText || interim).trim() + '”';
+        if (finalText.trim()) done(finalText.trim());
+      };
+      rec.onerror = (e) => {
+        errored = true;
+        const err = e && e.error;
+        if (err === 'not-allowed' || err === 'service-not-allowed') { srBroken = true; setListening(false, mode); fallbackInput(mode); }
+        else if (err === 'no-speech') { setListening(false, mode); reply('I didn’t hear anything. Tap the mic and try again.', 'warn'); }
+        else if (err === 'aborted') { setListening(false, mode); }
+        else { setListening(false, mode); showHint('Voice error (' + err + '). You can type or use keyboard dictation instead.'); }
+      };
+      rec.onend = () => {
+        clearTimeout(listenTimer);
+        setListening(false, mode);
+        const t = (finalText || interim).trim();
+        if (!handled && t) done(t);
+        else if (!handled && !errored && !gotAudio) { srBroken = true; fallbackInput(mode); } // API exposed but dead (some iOS in-app browsers)
+        else if (!handled && !errored) reply('I didn’t catch that. Tap the mic and try again.', 'warn');
+        rec = null;
+      };
+      try { rec.start(); setListening(true, mode); document.getElementById('voiceHeard').textContent = ''; }
+      catch (e) { srBroken = true; setListening(false, mode); fallbackInput(mode); return; }
+      listenTimer = setTimeout(() => { try { rec && rec.stop(); } catch (e) {} }, 12000);
+    }
+    document.getElementById('btnMic').addEventListener('click', () => startListening('command'));
+    document.getElementById('askMic').addEventListener('click', () => startListening('answer'));
+    document.getElementById('cmdForm').addEventListener('submit', (e) => {
+      e.preventDefault(); unlockSpeech();
+      const inp = document.getElementById('cmdInput');
+      const t = inp.value.trim(); if (!t) { inp.focus(); return; }
+      inp.value = ''; inp.blur();
+      document.getElementById('voiceHeard').textContent = '“' + t + '”';
+      runCommand(t, 'typed');
+    });
+    document.getElementById('askForm').addEventListener('submit', (e) => {
+      e.preventDefault(); unlockSpeech();
+      const inp = document.getElementById('askInput'); const t = inp.value.trim();
+      inp.value = ''; if (t) handleAnswer(t);
+    });
+    document.getElementById('askCancel').addEventListener('click', () => { closeModal('modalAsk'); reply('Okay, cancelled. Nothing was recorded.', 'warn'); });
+    if (!SR) showHint(FALLBACK_HINT);
+
+    // ========== COMMANDS ==========
+    const HELP = 'You can say: “spent 78 at the grocery store”, “add 100 to groceries”, “set fuel budget to 300”, “how much is left in fuel”, “how much is left overall”, “how much did I spend today” or “this week”, “how many days left”, “list my envelopes”, “what was my last transaction”, “undo”, or “create an envelope called hunting with 200”.';
+    function envNames() { return envelopes.map(e => e.name); }
+    function rangeFor(scope, now) {
+      now = now || new Date();
+      const sod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      if (scope === 'today') return [sod, now, 'today'];
+      if (scope === 'yesterday') { const y = new Date(sod); y.setDate(y.getDate() - 1); return [y, new Date(+sod - 1), 'yesterday']; }
+      if (scope === 'week') { const w = new Date(sod); w.setDate(w.getDate() - 6); return [w, now, 'in the last 7 days']; }
+      const p = curP(); return [p.start, p.end, 'this pay period'];
+    }
+    function describeEntry(h) {
+      const verb = h.type === 'spend' ? `Spent ${money(h.amount)} from` : `Added ${money(h.amount)} to`;
+      return `${verb} ${h.envelopeName} on ${formatDate(h.ts)}${h.note ? ' (' + h.note + ')' : ''}.`;
+    }
+
+    function runCommand(text, via) {
+      checkRollover();
+      if (via === 'button') document.getElementById('voiceHeard').textContent = '';
+      const r = BudgetParser.parse(text, envNames());
+      return executeParsed(r, via, text);
+    }
+
+    function executeParsed(r, via, text) {
+      const env = r.envelope ? findEnv(r.envelope) : null;
+      const needsEnv = ['spend', 'fill', 'setBudget'].indexOf(r.intent) >= 0;
+      switch (r.intent) {
+        case 'cancel': reply('Okay, cancelled.', 'warn'); return r;
+        case 'help': reply(HELP); return r;
+        case 'undo': {
+          const g = undoLast();
+          if (!g) { reply('There’s nothing to undo.', 'warn'); return r; }
+          const e0 = envelopes.find(e => e.id === g[0].envelopeId);
+          const what = g.length > 1 ? `Undid the last ${g.length} entries.` : 'Undid: ' + describeEntry(g[0]).replace(/\.$/, '') + '.';
+          reply(what + (e0 ? '\n' + remainingLine(e0) : ''), 'ok', { speakText: (g.length > 1 ? `Undid ${g.length} entries. ` : 'Undone. ') + (e0 ? remainingLine(e0) : '') });
+          return r;
+        }
+        case 'create': {
+          if (findEnv(r.name)) { reply(`You already have an envelope called ${r.name}.`, 'warn'); return r; }
+          const e = createEnvelope(r.name, r.amount || 0, null);
+          reply(`Created ${e.name}${r.amount ? ' with ' + money(r.amount) + ' per pay period' : ''}.\n` + remainingLine(e), 'ok', { undo: false });
+          return r;
+        }
+        case 'daysLeft': {
+          const p = curP(), d = Period.daysLeft(p), np = Period.nextPayday();
+          const t = (d === 1 ? 'Today is the last day of this pay period' : `${d} days left in this pay period`) + ` (${p.label.replace(/, \d+$/, '')}). Next payday is ${nice(np)}. ${money(totalAvailable())} left this pay period.`;
+          reply(t); return r;
+        }
+        case 'list': {
+          const lines = sortedEnvelopes().map(e => `${e.name}: ${money(e.balance)}`);
+          reply(lines.join('\n') + `\nTotal: ${money(totalAvailable())} left this pay period.`, '',
+            { speakText: sortedEnvelopes().map(e => `${e.name}, ${money(e.balance)}`).join('. ') + `. ${money(totalAvailable())} left this pay period.` });
+          return r;
+        }
+        case 'last': {
+          const h = lastUserEntry();
+          reply(h ? 'Last entry: ' + describeEntry(h) : 'No entries yet.', '', { undo: !!h });
+          return r;
+        }
+        case 'spentQuery': {
+          if (!env && r.candidates.length > 1) return askWhich(r, text);
+          const [from, to, words] = rangeFor(r.scope);
+          const amt = spentBetween(from, to, env && env.id);
+          reply(env ? `You’ve spent ${money(amt)} on ${env.name} ${words}.` : `You’ve spent ${money(amt)} ${words}.` + (r.scope === 'period' || !r.scope ? ` ${money(totalAvailable())} left this pay period.` : ''));
+          return r;
+        }
+        case 'query': {
+          if (env) { reply(remainingLine(env)); return r; }
+          if (r.candidates.length > 1) return askWhich(r, text);
+          const d = Period.daysLeft(curP());
+          reply(`${money(totalAvailable())} left this pay period across ${envelopes.length} envelopes, with ${d} day${d === 1 ? '' : 's'} to go.`);
+          return r;
+        }
+        case 'spend': case 'fill': case 'setBudget': {
+          if (r.amount == null || r.amount <= 0) {
+            reply(`I didn’t catch the amount. Try again, like “${r.intent === 'fill' ? 'add 100 to groceries' : r.intent === 'setBudget' ? 'set groceries budget to 300' : 'spent 78 at the grocery store'}”.`, 'warn');
+            return r;
+          }
+          if (!env) return askWhich(r, text);
+          return applyAction(r, env, text, via);
+        }
+        default:
+          reply('Sorry, I didn’t understand “' + (text || '') + '”. ' + HELP, 'warn');
+          return r;
+      }
+      void needsEnv;
+    }
+
+    function applyAction(r, env, text, via) {
+      if (r.intent === 'spend') {
+        doSpend(env, r.amount, (text || '').slice(0, 60), via);
+        reply(`Spent ${money(r.amount)} from ${env.name}.\n` + remainingLine(env), env.balance < 0 ? 'warn' : 'ok', { undo: true, speakText: remainingLine(env) });
+      } else if (r.intent === 'fill') {
+        doFill(env, r.amount, (text || '').slice(0, 60), via); save(); render();
+        reply(`Added ${money(r.amount)} to ${env.name}.\n` + remainingLine(env), 'ok', { undo: true, speakText: `Added ${money(r.amount)}. ` + remainingLine(env) });
+      } else if (r.intent === 'setBudget') {
+        doSetBudget(env, r.amount); save(); render();
+        reply(`${env.name} budget set to ${money(r.amount)} per pay period.\n` + remainingLine(env), 'ok', { undo: true });
+      } else if (r.intent === 'query') {
+        reply(remainingLine(env));
+      } else if (r.intent === 'spentQuery') {
+        const [from, to, words] = rangeFor(r.scope);
+        reply(`You’ve spent ${money(spentBetween(from, to, env.id))} on ${env.name} ${words}.`);
+      }
+      return r;
+    }
+
+    function askWhich(r, text) {
+      pendingAsk = { r, text };
+      const cands = r.candidates.filter(n => findEnv(n));
+      const ordered = cands.concat(sortedEnvelopes().map(e => e.name).filter(n => cands.indexOf(n) < 0));
+      const what = r.intent === 'spend' ? `Spending ${money(r.amount)}` : r.intent === 'fill' ? `Adding ${money(r.amount)}` :
+        r.intent === 'setBudget' ? `Setting a budget of ${money(r.amount)}` : 'Checking an envelope';
+      document.getElementById('askSub').textContent = `${what} — “${text}”`;
+      document.getElementById('askHint').textContent = SR && !srBroken ? 'Tap an envelope, or tap “Answer by voice” and say its name.' : 'Tap an envelope, or type/dictate its name below.';
+      const grid = document.getElementById('askChoices');
+      grid.innerHTML = ordered.map(n => `<button type="button" class="${cands.indexOf(n) >= 0 ? 'btn-primary' : 'btn-secondary'}" data-choice="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join('');
+      grid.querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => chooseEnvelope(b.getAttribute('data-choice'))));
+      openModal('modalAsk');
+      const q = cands.length >= 2 && cands.length <= 4 ? `Which envelope? ${cands.slice(0, -1).join(', ')} or ${cands[cands.length - 1]}?` : 'Which envelope?';
+      reply(q + (cands.length < 2 ? ' Tap one or say its name.' : ''), 'warn', { speakText: q });
+      return Object.assign({}, r, { asked: true });
+    }
+    function chooseEnvelope(name) {
+      const p = pendingAsk; const env = findEnv(name);
+      if (!p || !env) return;
+      document.getElementById('modalAsk').classList.remove('open');
+      pendingAsk = null; stopListening();
+      applyAction(p.r, env, p.text, 'voice');
+    }
+    function handleAnswer(t) {
+      if (!pendingAsk) { runCommand(t, 'voice'); return; }
+      const n = BudgetParser.norm(t);
+      if (/^(cancel|never ?mind|stop|forget it|none|nothing)( |$)/.test(n)) { closeModal('modalAsk'); reply('Okay, cancelled. Nothing was recorded.', 'warn'); return; }
+      const res = BudgetParser.resolveEnvelope(t, envNames());
+      document.getElementById('voiceHeard').textContent = '“' + t + '”';
+      if (res.envelope) { chooseEnvelope(res.envelope); return; }
+      const c = res.candidates.length >= 2 ? `${res.candidates.slice(0, -1).join(', ')} or ${res.candidates[res.candidates.length - 1]}?` : '';
+      reply(`Sorry, which envelope? ${c}`.trim(), 'warn');
+    }
+
+    // ========== SETTINGS ==========
+    document.getElementById('btnSettings').addEventListener('click', () => {
+      document.getElementById('setCarry').checked = !!settings.carryOver;
+      document.getElementById('setVoice').checked = !!settings.voice;
+      const info = [];
+      info.push('Pay periods: 1st–14th and 15th–end of month. Current: ' + curP().label + '.');
+      info.push('Speech recognition: ' + (SR ? (srBroken ? 'blocked in this browser' : 'available') : 'not available here — use keyboard dictation') + '. Spoken replies: ' + ('speechSynthesis' in window ? 'available' : 'not available') + '.');
+      if (!storageOk) info.push('Warning: this browser is not saving data. Export a backup before closing.');
+      info.push('Last backup: ' + (settings.lastBackup ? formatDate(settings.lastBackup) : 'never') + '.');
+      document.getElementById('settingsInfo').textContent = info.join(' ');
+      openModal('modalSettings');
+    });
+    document.getElementById('setCarry').addEventListener('change', (e) => { settings.carryOver = e.target.checked; save(); });
+    document.getElementById('setVoice').addEventListener('change', (e) => { settings.voice = e.target.checked; save(); if (e.target.checked) { unlockSpeech(); speak('Spoken replies are on.'); } });
+    document.getElementById('closeSettings').addEventListener('click', () => closeModal('modalSettings'));
+
+    // ========== BACKUP ==========
+    function backupJson() {
+      return JSON.stringify({ app: 'envelope-budget', exportedAt: new Date().toISOString(), version: DATA_VERSION, envelopes, history, settings, currentPeriod, periods }, null, 2);
+    }
+    function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function markBackup() { settings.lastBackup = Date.now(); save(); render(); }
+    function showBackupText() {
+      document.getElementById('importTitle').textContent = 'Backup text';
+      document.getElementById('importSub').textContent = 'Select all, copy, and paste it into Notes or Files to keep it safe.';
+      const ta = document.getElementById('backupText'); ta.style.display = 'block'; ta.value = backupJson();
+      document.getElementById('confirmImport').style.display = 'none';
+      document.getElementById('cancelImport').textContent = 'Close';
+      openModal('modalImport');
+      markBackup();
+    }
+    document.getElementById('btnBackupText').addEventListener('click', () => { closeModal('modalSettings'); showBackupText(); });
+    document.getElementById('btnExport').addEventListener('click', async () => {
+      const json = backupJson();
+      const fname = 'envelope-budget-backup-' + ymd(new Date()) + '.json';
+      try {
+        if (typeof File !== 'undefined' && navigator.canShare) {
+          const file = new File([json], fname, { type: 'application/json' });
+          if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Envelope Budget backup' }); markBackup(); toast('Backup shared — choose “Save to Files”'); return; }
+        }
+      } catch (e) { if (e && e.name === 'AbortError') return; }
+      try {
+        const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+        const a = document.createElement('a'); a.href = url; a.download = fname; document.body.appendChild(a); a.click();
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 5000);
+        markBackup(); toast('Backup saved: ' + fname + ' (if nothing downloaded, use Settings → Show backup as text)');
+      } catch (e) { showBackupText(); }
+    });
+    document.getElementById('btnImport').addEventListener('click', () => { const f = document.getElementById('importFile'); f.value = ''; f.click(); });
+    document.getElementById('importFile').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const rd = new FileReader();
+      rd.onload = () => prepareImport(String(rd.result || ''));
+      rd.onerror = () => alert('Could not read that file.');
+      rd.readAsText(file);
+    });
+    function prepareImport(text) {
+      let data;
+      try { data = JSON.parse(text); } catch (e) { alert('That file is not a valid backup.'); return false; }
+      if (!data || !Array.isArray(data.envelopes)) { alert('That file is not an Envelope Budget backup.'); return false; }
+      pendingImport = data;
+      document.getElementById('importTitle').textContent = 'Import Backup';
+      document.getElementById('importSub').textContent = `Replace everything on this phone with the backup${data.exportedAt ? ' from ' + formatDate(data.exportedAt) : ''}? It has ${data.envelopes.length} envelopes and ${(data.history || []).length} activity entries.`;
+      document.getElementById('backupText').style.display = 'none';
+      document.getElementById('confirmImport').style.display = '';
+      document.getElementById('cancelImport').textContent = 'Cancel';
+      openModal('modalImport');
+      return true;
+    }
+    document.getElementById('cancelImport').addEventListener('click', () => { pendingImport = null; closeModal('modalImport'); });
+    document.getElementById('confirmImport').addEventListener('click', () => {
+      if (!pendingImport) return;
+      const m = migrate(pendingImport);
+      envelopes = m.envelopes; history = m.history; settings = m.settings; currentPeriod = m.currentPeriod; periods = m.periods;
+      ensureMisc(); checkRollover(); viewKey = currentPeriod; save(); render();
+      pendingImport = null; closeModal('modalImport'); toast('Backup restored');
+    });
+
+    // ========== INIT ==========
+    load();
+    checkRollover();
+    viewKey = currentPeriod;
+    render();
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && checkRollover()) render(); });
+    setInterval(() => { if (checkRollover()) render(); }, 60000);
+
+    // ========== SIRI / SHORTCUT HAND-OFF: envelope-budget.html?say=spent%2078%20at%20safeway ==========
+    (function handleUrlCommand() {
+      let say = null, tok = null;
+      try { const q = new URLSearchParams(location.search); say = q.get('say') || q.get('cmd'); tok = q.get('t'); } catch (e) { return; }
+      if (!say || !say.trim()) return;
+      try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}   // never re-run on reload
+      const key = 'envelope-budget-v2-handled';
+      let seen = []; try { seen = JSON.parse(storeGet(key) || '[]'); if (!Array.isArray(seen)) seen = []; } catch (e) {}
+      const id = say.trim().toLowerCase() + '|' + (tok || '');
+      const now = Date.now();
+      // Same token = already done. No token: ignore an identical command repeated within 10 minutes (page reload / tab restore).
+      if (seen.some(x => x && x.id === id && (tok || now - x.ts < 600000))) { toast('Already recorded: “' + say.trim() + '”'); return; }
+      seen.push({ id, ts: now }); storeSet(key, JSON.stringify(seen.slice(-30)));
+      document.getElementById('voiceHeard').textContent = '“' + say.trim() + '” (from Siri)';
+      runCommand(say.trim(), 'siri');
+      // iPhone browsers block sound until you tap, so offer a one-tap replay.
+      const box = document.getElementById('voiceReply');
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn-secondary btn-small'; b.textContent = '🔊 Hear it';
+      b.style.marginTop = '10px';
+      const txt = box.innerText.replace(/↶ Undo/g, '').trim();
+      b.addEventListener('click', () => { unlockSpeech(); speak(txt); });
+      box.appendChild(b);
+    })();
+
+    // Test hook (harmless in normal use)
+    window.__budget = { runCommand, checkRollover, state: () => ({ envelopes, history, settings, currentPeriod, periods }), totalAvailable, totalBudget, spentThisPeriod, prepareImport, chooseEnvelope, handleAnswer, load, render, setViewKey: k => { viewKey = k; } };
+
+  </script>
+</body>
+</html>
