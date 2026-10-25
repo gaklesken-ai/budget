@@ -386,17 +386,11 @@
     .budget-btn { width: 100%; margin-top: 10px; }
 
     .voice-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 18px; }
-    .voice-top { display: flex; align-items: center; gap: 14px; }
-    .mic { width: 84px; height: 84px; border-radius: 50%; padding: 0; flex-shrink: 0; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
-    .mic svg { width: 38px; height: 38px; }
-    .mic.listening { background: var(--red); animation: pulse 1.2s infinite; }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.6); } 70% { box-shadow: 0 0 0 18px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
     .voice-title { font-weight: 700; font-size: 1.1rem; }
     .voice-sub { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
     .cmd-form { display: flex; gap: 8px; margin-top: 14px; }
     .cmd-form input { flex: 1; min-width: 0; }
     .cmd-form button { padding: 12px 18px; }
-    .voice-hint { color: var(--orange); font-size: 0.8rem; margin-top: 8px; display: none; }
     .voice-heard { color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; min-height: 0; font-style: italic; }
     .voice-reply { margin-top: 8px; font-size: 1.05rem; font-weight: 600; display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; white-space: pre-line; }
     .voice-reply.ok { border-color: var(--green); }
@@ -437,7 +431,6 @@
     .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .chip { padding: 9px 12px; font-size: 0.9rem; border-radius: 18px; background: var(--bg); color: var(--text); border: 1px solid var(--border); }
     .chip.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .mic.tapreply { background: var(--orange); box-shadow: 0 0 0 4px rgba(255,165,0,0.25); }
     .msg.bot.quiet { opacity: 0.75; font-style: italic; }
     .voice-pick { padding: 12px 0; border-bottom: 1px solid var(--border); }
     .voice-pick label small { display: block; color: var(--text-muted); font-size: 0.8rem; font-weight: 400; }
@@ -490,20 +483,12 @@
     </div>
 
     <div class="voice-card">
-      <div class="voice-top">
-        <button class="mic" type="button" id="btnMic" aria-label="Tap and speak">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
-        </button>
-        <div>
-          <div class="voice-title" id="micTitle">Tap &amp; speak</div>
-          <div class="voice-sub">“spent 78 at the grocery store” · “how much is left in fuel?” · “what can you do?”</div>
-        </div>
-      </div>
+      <div class="voice-title" id="cmdTitle">Type what you spent or ask a question</div>
+      <div class="voice-sub">“spent 78 at the grocery store” · “how much is left in fuel?” · “what can you do?”</div>
       <form class="cmd-form" id="cmdForm" autocomplete="off">
-        <input type="text" id="cmdInput" placeholder="Or type / dictate here…" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <input type="text" id="cmdInput" placeholder="e.g. spent 78 on groceries" aria-label="Type what you spent or ask a question" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false" />
         <button class="btn-primary" type="submit">Go</button>
       </form>
-      <div class="voice-hint" id="voiceHint"></div>
       <div class="chat-log" id="chatLog" aria-live="polite"></div>
     </div>
 
@@ -645,8 +630,7 @@
     <div class="modal">
       <h2>Settings</h2>
       <label class="toggle-row"><span>Carry leftover to next pay period<small>On: unspent money (or overspending) carries forward and the new budget is added. Off: each envelope resets to its budget.</small></span><input type="checkbox" id="setCarry" /></label>
-      <label class="toggle-row"><span>Spoken replies<small>Read answers out loud after each voice or typed command.</small></span><input type="checkbox" id="setVoice" /></label>
-      <label class="toggle-row"><span>Keep listening after replies<small>Hands-free: after answering a voice request, the mic opens again so you can answer back. Say “done” or “thanks” to stop.</small></span><input type="checkbox" id="setKeepListening" /></label>
+      <label class="toggle-row"><span>Spoken replies<small>Read answers out loud after each command. Off by default.</small></span><input type="checkbox" id="setVoice" /></label>
       <div class="voice-pick"><label for="setVoiceName">Voice<small>★ = Enhanced/Premium (most natural). Add more in iPhone Settings › Accessibility › Spoken Content › Voices › English.</small></label>
         <div class="voice-pick-row"><select id="setVoiceName"><option value="">Automatic (best available)</option></select><button type="button" class="btn-secondary btn-small" id="btnTestVoice">Test voice</button></div></div>
       <div class="muted-note" id="settingsInfo" style="margin-top:12px;"></div>
@@ -1154,7 +1138,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     // Added fields: envelope.budget, entry.kind/groupId/budgetDelta, settings, currentPeriod, periods.
     let envelopes = [];
     let history = [];
-    let settings = { carryOver: true, voice: true, keepListening: true, voiceURI: '', lastBackup: 0 };
+    let settings = { carryOver: true, voice: false, voiceURI: '', lastBackup: 0 };
     let currentPeriod = null;   // key like "2026-10-B"
     let periods = {};           // closed-period snapshots by key
     let editingId = null;
@@ -1181,7 +1165,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       const out = {
         envelopes: Array.isArray(data && data.envelopes) ? data.envelopes : [],
         history: Array.isArray(data && data.history) ? data.history : [],
-        settings: Object.assign({ carryOver: true, voice: true, keepListening: true, voiceURI: '', lastBackup: 0 }, (data && data.settings) || {}),
+        settings: Object.assign({ carryOver: true, voice: false, voiceURI: '', lastBackup: 0 }, (data && data.settings) || {}),
         currentPeriod: (data && data.currentPeriod) || null,
         periods: (data && data.periods) || {}
       };
@@ -1789,19 +1773,6 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       } catch (e) { notifySpeechDone(seq); return false; }
       return true;
     }
-    // Calls fn once the current reply has finished speaking (onend, or polling in case iOS never fires onend).
-    function afterSpeech(fn) {
-      const s = synth();
-      let fired = false; const t0 = Date.now();
-      const once = () => { if (fired) return; fired = true; clearInterval(poll); fn(); };
-      if (!speechActive) { setTimeout(once, 0); return; }
-      speechDoneWaiters.push(once);
-      const poll = setInterval(() => {
-        let busy = speechActive;
-        try { if (s && !(s.speaking || s.pending) && Date.now() - t0 > 1200) busy = false; } catch (e) {}
-        if (!busy || Date.now() - t0 > 45000) { speechActive = false; once(); }
-      }, 300);
-    }
     function refreshVoicePicker() {
       const sel = document.getElementById('setVoiceName'); if (!sel) return;
       const vs = englishVoices().slice().sort((a, b) => voiceScore(b) - voiceScore(a));
@@ -1867,208 +1838,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
-    // ========== SPEECH INPUT ==========
-    // Every mic tap tries speech recognition again: a failed attempt never disables the mic for the session.
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-    let rec = null, cur = null, listening = false, starting = false, srFails = 0, lastSrError = '';
-    let listenTimer = null, startTimer = null, stopTimer = null, userStopped = false, recGen = 0, lastTapAt = 0;
-    let loopOn = false, relistenTimer = null, relistenToken = 0, tapToReply = false;
-    const FALLBACK_HINT = 'Voice listening isn’t available in this browser (common in Edge and Chrome on iPhone). Tap the box, tap the 🎤 on your iPhone keyboard, say it, then tap Go. Answers are still spoken out loud.';
-    const RETRY_HINT = 'If the mic doesn’t pick you up, tap it again — every tap tries again. You can also tap the box, tap the 🎤 on your iPhone keyboard, say it, then tap Go.';
-    function showHint(msg) { const h = document.getElementById('voiceHint'); h.textContent = msg; h.style.display = 'block'; }
-    function hideHint() { const h = document.getElementById('voiceHint'); if (SR) { h.style.display = 'none'; h.textContent = ''; } }
-    function setMicState(mode) {   // 'idle' | 'starting' | 'listening' | 'tapreply'
-      listening = mode === 'listening' || mode === 'starting';
-      starting = mode === 'starting';
-      tapToReply = mode === 'tapreply';
-      const b = document.getElementById('btnMic');
-      b.classList.toggle('listening', listening);
-      b.classList.toggle('tapreply', tapToReply);
-      b.setAttribute('aria-label', listening ? 'Listening, tap to stop' : (tapToReply ? 'Tap to reply' : 'Tap and speak'));
-      document.getElementById('micTitle').textContent = listening ? 'Listening… tap to stop' : (tapToReply ? 'Tap to reply' : 'Tap & speak');
-    }
-    function setListening(on) { setMicState(on ? 'listening' : 'idle'); }
-    function detachRec(r, abort) {
-      if (!r) return;
-      r.onstart = r.onaudiostart = r.onresult = r.onerror = r.onend = null;   // stale events from an old recognizer must not touch state
-      if (abort) { try { r.abort(); } catch (e) {} }
-    }
-    function clearMicTimers() { clearTimeout(listenTimer); clearTimeout(startTimer); clearTimeout(stopTimer); listenTimer = startTimer = stopTimer = null; }
-    function stopListening() {   // quiet hard stop (page hidden, typed turn)
-      userStopped = true; recGen++;
-      const r = rec; rec = null; cur = null; detachRec(r, true);
-      clearMicTimers(); setMicState('idle');
-    }
-    function endLoop() { loopOn = false; relistenToken++; clearTimeout(relistenTimer); relistenTimer = null; }
-    function fallbackInput() { showHint(SR ? RETRY_HINT : FALLBACK_HINT); document.getElementById('cmdInput').focus(); }
-    function attemptFailed(auto, reason, msg) {
-      srFails++; lastSrError = reason; endLoop();
-      if (auto) { setMicState('tapreply'); return; }   // auto restart needs a tap on iOS: just ask for one
-      fallbackInput();
-      const extra = srFails >= 3 ? ' The mic has missed a few times in a row here, so the keyboard 🎤 may be more reliable, but every tap still tries the mic.' : ' Tap the mic to try again, or tap the box and use the 🎤 on your keyboard.';
-      reply(msg + extra, 'warn');
-    }
-    function micTap() {
-      const now = Date.now();
-      if (listening) {
-        if (now - lastTapAt < 400) return;   // double-tap guard
-        lastTapAt = now; endLoop(); requestStop(); return;
-      }
-      lastTapAt = now; endLoop();
-      startListening({ auto: false });
-    }
-    function requestStop() {
-      userStopped = true;
-      if (starting || !cur) { stopListening(); return; }
-      const c = cur;
-      try { c.r.stop(); } catch (e) {}
-      clearTimeout(stopTimer);
-      stopTimer = setTimeout(() => { if (cur === c) c.forceEnd(); }, 1500);   // iOS sometimes never fires onend
-    }
-    function startListening(opts) {
-      const auto = !!(opts && opts.auto);
-      const s = synth();
-      let busy = false;
-      try { busy = !!(s && (s.speaking || s.pending)); } catch (e) {}
-      if (!auto) unlockSpeech();
-      if (!SR) { if (!auto) fallbackInput(); return; }
-      const old = rec; rec = null; cur = null; detachRec(old, true);
-      clearMicTimers();
-      try { s && s.cancel(); } catch (e) {}
-      const gen = ++recGen;
-      userStopped = false;
-      setMicState('starting');
-      // iOS can't open the mic while speech is still playing: give the audio session a moment after cancel().
-      if (busy) startTimer = setTimeout(() => beginRec(gen, auto), 320); else beginRec(gen, auto);
-    }
-    function beginRec(gen, auto) {
-      if (gen !== recGen) return;
-      startTimer = null;
-      let finalText = '', interim = '', handled = false, errored = false, gotAudio = false, r;
-      try {
-        r = new SR();
-        r.lang = 'en-CA'; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
-      } catch (e) { setMicState('idle'); attemptFailed(auto, 'could not create', 'Voice listening didn’t start that time.'); return; }
-      rec = r;
-      const c = { r, auto };
-      cur = c;
-      const mine = () => cur === c;
-      const heard = () => (finalText || interim).trim();
-      const finish = () => {
-        if (rec === r) rec = null;
-        if (cur === c) cur = null;
-        detachRec(r, false); clearMicTimers(); setMicState('idle');
-        document.getElementById('cmdInput').placeholder = 'Or type / dictate here…';
-      };
-      const done = (t) => {
-        if (handled) return; handled = true;
-        srFails = 0; lastSrError = '';
-        finish();
-        try { r.stop(); } catch (e) {}
-        hideHint();
-        voiceTurn(t);
-      };
-      const quietEnd = () => {   // a silent round in the hands-free loop: stop without nagging
-        endLoop();
-        addMsg('bot', 'I’ve stopped listening. Tap the mic when you need me.', { cls: 'quiet' });
-      };
-      c.forceEnd = () => {
-        if (!mine()) return;
-        const t = heard(); finish(); try { r.abort(); } catch (e) {}
-        if (handled) return;
-        if (t) done(t);
-        else if (userStopped) {}
-        else if (auto) quietEnd();
-        else reply('I stopped listening. Tap the mic and try again.', 'warn');
-      };
-      r.onstart = r.onaudiostart = () => { gotAudio = true; };
-      r.onresult = (e) => {
-        if (!mine()) return;
-        gotAudio = true; interim = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          const tr = e.results[i][0].transcript;
-          if (e.results[i].isFinal) finalText += tr; else interim += tr;
-        }
-        document.getElementById('cmdInput').placeholder = '“' + heard() + '”';
-        if (finalText.trim()) done(finalText.trim());
-      };
-      r.onerror = (e) => {
-        if (!mine() || handled) return;
-        errored = true;
-        const err = (e && e.error) || 'unknown';
-        const t = heard();
-        finish();
-        if (t && err !== 'not-allowed') { done(t); return; }
-        if (err === 'no-speech') { srFails = 0; if (auto) quietEnd(); else reply('I didn’t hear anything. Tap the mic and try again.', 'warn'); }
-        else if (err === 'aborted') { if (!userStopped) attemptFailed(auto, 'aborted', 'I stopped listening before I heard anything.'); }
-        else if (err === 'not-allowed' || err === 'service-not-allowed') {
-          if (auto) { srFails++; lastSrError = err; endLoop(); setMicState('tapreply'); return; }
-          srFails++; lastSrError = err; endLoop();
-          showHint('Microphone permission: on your iPhone open Settings › Edge › Microphone and turn it on (Safari: tap aA › Website Settings › Microphone › Allow). Then tap the mic again.');
-          reply('I don’t have permission to use the microphone. On your iPhone open Settings, then Edge, and turn on Microphone. In Safari, tap the aA button, then Website Settings, and allow the microphone. Then tap the mic again, or type it.', 'warn');
-        }
-        else attemptFailed(auto, err, 'Voice input hit a problem (' + err + ').');
-      };
-      r.onend = () => {
-        if (!mine()) return;
-        const t = heard();
-        finish();
-        if (handled) return;
-        if (t) { done(t); return; }
-        if (errored || userStopped) return;
-        if (!gotAudio) attemptFailed(auto, 'ended before starting', 'Voice listening didn’t start that time.');
-        else { srFails = 0; if (auto) quietEnd(); else reply('I didn’t catch that. Tap the mic and try again.', 'warn'); }
-      };
-      try { r.start(); }
-      catch (e) { finish(); attemptFailed(auto, 'start failed', 'Voice listening didn’t start that time.'); return; }
-      setMicState('listening');
-      listenTimer = setTimeout(() => {   // 12 s cap; if stop() never produces onend, force the end
-        if (!mine()) return;
-        try { r.stop(); } catch (e) {}
-        stopTimer = setTimeout(() => { if (mine()) c.forceEnd(); }, 1500);
-      }, 12000);
-    }
-    // ---- hands-free loop: after a spoken reply to a voice turn, listen again ----
-    function isStopPhrase(t) {
-      const n = String(t).toLowerCase().replace(/[’']/g, '').replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim()
-        .replace(/^(ok|okay|alright|all right|well)\s+/, '');
-      return /^(im |were |thats |that is )?(done|all done|finished|stop|stop listening|thats all|thats it|that is all|that is it|bye|bye bye|goodbye|good bye|see you|see ya|talk later|talk to you later|thanks|thank you|thanks a lot|thank you very much|thanks very much|no thanks|no thank you)( thanks| thank you| bye)?$/.test(n);
-    }
-    function voiceTurn(t) {
-      if (settings.keepListening !== false) loopOn = true;
-      if (isStopPhrase(t)) {
-        addMsg('user', t);
-        const p = convo.pending; convo.pending = null;
-        endLoop();
-        reply(p ? 'Okay, I’ve cancelled that. Nothing was changed. Talk later.' : 'Okay, talk later.');
-        return;
-      }
-      runTurn(t, 'voice');
-      if (loopOn) scheduleRelisten();
-    }
-    function scheduleRelisten() {
-      const token = ++relistenToken;
-      const ok = () => token === relistenToken && loopOn && !document.hidden && !listening;
-      afterSpeech(() => {
-        if (!ok()) return;
-        clearTimeout(relistenTimer);
-        relistenTimer = setTimeout(() => { if (ok()) startListening({ auto: true }); }, 350);
-      });
-    }
-    document.getElementById('btnMic').addEventListener('click', () => micTap());
+    // ========== TYPED INPUT ==========
+    // Typed commands only (the iPhone keyboard's own dictation key still works in this box; no app code involved).
     document.getElementById('cmdForm').addEventListener('submit', (e) => {
       e.preventDefault(); unlockSpeech();
       const inp = document.getElementById('cmdInput');
       const t = inp.value.trim(); if (!t) { inp.focus(); return; }
       inp.value = ''; inp.blur();
-      endLoop(); if (listening) stopListening();   // typed turns don't auto-listen
       runTurn(t, 'typed');
     });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) { endLoop(); if (listening) stopListening(); if (tapToReply) setMicState('idle'); } });
-    if (!SR) showHint(FALLBACK_HINT);
 
     // ========== CONVERSATION ==========
-    const HELP = 'I can record spending (“spent 78 at the grocery store”), add money (“add 100 to groceries”), move money (“move 50 from groceries to fuel”), fix the last entry (“that should have been fuel”, “that was 70 not 80”), set budgets (“set fuel budget to 300”), create, rename or delete envelopes, and answer questions like “how much is left in fuel”, “how much did I spend this week”, “how many days left”, or “list my envelopes”. Say “undo” to take back the last entry.';
+    const HELP = 'I can record spending (“spent 78 at the grocery store”), add money (“add 100 to groceries”), move money (“move 50 from groceries to fuel”), fix the last entry (“that should have been fuel”, “that was 70 not 80”), set budgets (“set fuel budget to 300”), create, rename or delete envelopes, and answer questions like “how much is left in fuel”, “how much did I spend this week”, “how many days left”, or “list my envelopes”. Type “undo” to take back the last entry.';
     const SHORT_HELP = 'I can record spending, add or move money, fix the last entry, set budgets, manage envelopes, and tell you what’s left.';
     function envNames() { return envelopes.map(e => e.name); }
     function ctxEnv() { return envelopes.find(e => e.id === convo.lastEnvId) || null; }
@@ -2117,13 +1898,13 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     // One user turn. Always ends with a visible + spoken reply.
     function runTurn(text, via, shown) {
       text = String(text || '').trim();
-      if (!text) { reply('I didn’t get anything. Tap the mic or type what you’d like to do.', 'warn'); return; }
+      if (!text) { reply('I didn’t get anything. Type what you’d like to do.', 'warn'); return; }
       addMsg('user', shown || text);
       const before = turnReplies;
       try { checkRollover(); converse(text, via || 'typed'); }
       catch (e) {
         console.warn('Turn failed:', e);
-        if (turnReplies === before) reply('Sorry, something went wrong handling that. Try saying it another way, or say “help”.', 'warn');
+        if (turnReplies === before) reply('Sorry, something went wrong handling that. Try typing it another way, or type “help”.', 'warn');
       }
       if (turnReplies === before) reply(`I’m not sure what to do with “${text}”. ${SHORT_HELP} What would you like to do?`, 'warn', { chips: [{ label: 'What can you do?', say: 'what can you do' }] });
     }
@@ -2226,7 +2007,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
           if (findEnv(r.name)) { const ex = findEnv(r.name); convo.lastEnvId = ex.id; reply(`You already have an envelope called ${ex.name}. ${envPhrase(ex)}.`, 'warn'); return; }
           const e = createEnvelope(r.name, r.amount || 0, null);
           convo.lastEnvId = e.id;
-          reply(`Created ${e.name}${r.amount ? ' with a ' + money(r.amount) + ' budget per pay period' : ''}.\n` + remainingLine(e) + (r.amount ? '' : `\nTo give it a budget, say “set ${e.name} budget to 200”.`), 'ok', { undo: !!r.amount });
+          reply(`Created ${e.name}${r.amount ? ' with a ' + money(r.amount) + ' budget per pay period' : ''}.\n` + remainingLine(e) + (r.amount ? '' : `\nTo give it a budget, type “set ${e.name} budget to 200”.`), 'ok', { undo: !!r.amount });
           return;
         }
         case 'rename': {
@@ -2413,11 +2194,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     document.getElementById('btnSettings').addEventListener('click', () => {
       document.getElementById('setCarry').checked = !!settings.carryOver;
       document.getElementById('setVoice').checked = !!settings.voice;
-      document.getElementById('setKeepListening').checked = settings.keepListening !== false;
       refreshVoicePicker();
       const info = [];
       info.push('Pay periods: 1st–14th and 15th–end of month. Current: ' + curP().label + '.');
-      info.push('Speech recognition: ' + (SR ? 'available' + (srFails ? ' (the last ' + (srFails === 1 ? 'try' : srFails + ' tries') + ' didn’t work: ' + lastSrError + '; every mic tap tries again)' : '') : 'not available here — use keyboard dictation') + '. Spoken replies: ' + ('speechSynthesis' in window ? 'available' : 'not available') + (pickVoice() ? ' (voice: ' + pickVoice().name + ')' : '') + '.');
+      info.push('Spoken replies: ' + ('speechSynthesis' in window ? (settings.voice ? 'on' : 'off') : 'not available in this browser') + (pickVoice() ? ' (voice: ' + pickVoice().name + ')' : '') + '.');
       if (!storageOk) info.push('Warning: this browser is not saving data. Export a backup before closing.');
       info.push('Last backup: ' + (settings.lastBackup ? formatDate(settings.lastBackup) : 'never') + '.');
       document.getElementById('settingsInfo').textContent = info.join(' ');
@@ -2425,7 +2205,6 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     });
     document.getElementById('setCarry').addEventListener('change', (e) => { settings.carryOver = e.target.checked; save(); });
     document.getElementById('setVoice').addEventListener('change', (e) => { settings.voice = e.target.checked; save(); if (e.target.checked) { unlockSpeech(); speak('Spoken replies are on.'); } });
-    document.getElementById('setKeepListening').addEventListener('change', (e) => { settings.keepListening = e.target.checked; save(); if (!e.target.checked) endLoop(); });
     document.getElementById('setVoiceName').addEventListener('change', (e) => { settings.voiceURI = e.target.value; save(); unlockSpeech(); speak('Hi George, this is how I sound.'); });
     document.getElementById('btnTestVoice').addEventListener('click', () => { unlockSpeech(); speak('Hi George. You have $212.50 left in Groceries, and $640 left overall this pay period.'); });
     document.getElementById('closeSettings').addEventListener('click', () => closeModal('modalSettings'));
@@ -2495,6 +2274,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
 
     // ========== INIT ==========
     load();
+    // One-time change (mic feature removed): turn spoken replies off so the phone doesn't talk unasked.
+    // He can turn them back on in Settings; this never runs again.
+    if (!settings.speechOffOnce) { settings.voice = false; settings.speechOffOnce = true; delete settings.keepListening; save(); }
     checkRollover();
     viewKey = currentPeriod;
     render();
@@ -2517,7 +2299,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
       runTurn(say.trim(), 'siri', say.trim() + ' (from Siri)');
       // iPhone browsers block sound until you tap, so offer a one-tap replay.
       const txt = lastReplyText;
-      if (lastBotEl) {
+      if (lastBotEl && settings.voice) {
         let c = lastBotEl.querySelector('.chips');
         if (!c) { c = document.createElement('div'); c.className = 'chips'; lastBotEl.appendChild(c); }
         const b = document.createElement('button'); b.type = 'button'; b.className = 'chip primary'; b.textContent = '🔊 Hear it';
@@ -2528,7 +2310,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = Period;
     })();
 
     // Test hook (harmless in normal use)
-    window.__budget = { mic: () => ({ listening, starting, srFails, lastSrError, loopOn, tapToReply, recGen }), voice: { pickVoice: () => { const v = pickVoice(); return v && { name: v.name, lang: v.lang, voiceURI: v.voiceURI }; }, spokenText, voiceScore }, runCommand, checkRollover, state: () => ({ envelopes, history, settings, currentPeriod, periods }), totalAvailable, totalBudget, spentThisPeriod, prepareImport, runTurn, convo, lastReply: () => lastReplyText, load, render, setViewKey: k => { viewKey = k; } };
+    window.__budget = { voice: { pickVoice: () => { const v = pickVoice(); return v && { name: v.name, lang: v.lang, voiceURI: v.voiceURI }; }, spokenText, voiceScore }, runCommand, checkRollover, state: () => ({ envelopes, history, settings, currentPeriod, periods }), totalAvailable, totalBudget, spentThisPeriod, prepareImport, runTurn, convo, lastReply: () => lastReplyText, load, render, setViewKey: k => { viewKey = k; } };
 
   </script>
 </body>
